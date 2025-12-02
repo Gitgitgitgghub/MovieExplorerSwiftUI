@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		94D5B6A12F16C0B600E7BD23 /* APIKey.json in Resources */ = {isa = PBXBuildFile; fileRef = 94D5B6A02F16C0B600E7BD23 /* APIKey.json */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		9429C6212ED9B8BB00F71CFC /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -19,6 +23,7 @@
 /* Begin PBXFileReference section */
 		9429C61D2ED9B8BB00F71CFC /* MovieExplorerSwiftUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MovieExplorerSwiftUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		94919B182ED69A9F0049D417 /* MovieExplorerSwiftUI.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MovieExplorerSwiftUI.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		94D5B6A02F16C0B600E7BD23 /* APIKey.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = APIKey.json; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -55,6 +60,7 @@
 		94919B0F2ED69A9F0049D417 = {
 			isa = PBXGroup;
 			children = (
+				94D5B6A02F16C0B600E7BD23 /* APIKey.json */,
 				94919B1A2ED69A9F0049D417 /* MovieExplorerSwiftUI */,
 				9429C61E2ED9B8BB00F71CFC /* MovieExplorerSwiftUITests */,
 				94919B192ED69A9F0049D417 /* Products */,
@@ -169,6 +175,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				94D5B6A12F16C0B600E7BD23 /* APIKey.json in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
