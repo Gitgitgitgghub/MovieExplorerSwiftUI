@@ -7,7 +7,7 @@
 
 import Foundation
 
-protocol TMDBServiceProtocol {
+protocol TMDBServiceProtocol: Sendable {
     func request<E: TMDBEndpointProtocol>(_ endpoint: E) async throws -> E.Response
     
 }
@@ -51,4 +51,3 @@ final class FakeTMDBService: TMDBServiceProtocol {
         fatalError("No mockJson provided for \(E.Response.self)")
     }
 }
-
