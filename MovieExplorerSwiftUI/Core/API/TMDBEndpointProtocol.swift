@@ -1,5 +1,5 @@
 //
-//  TMDBEndpoint.swift
+//  TMDBEndpointProtocol.swift
 //  MovieExplorerSwiftUI
 //
 //  Created by Brant on 2025/11/27.
@@ -7,7 +7,7 @@
 
 import Foundation
 
-protocol TMDBEndpoint {
+protocol TMDBEndpointProtocol {
     
     associatedtype Response: Decodable
     

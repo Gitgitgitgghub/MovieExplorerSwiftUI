@@ -8,7 +8,8 @@
 import Foundation
 
 protocol TMDBServiceProtocol {
-    func request<E: TMDBEndpoint>(_ endpoint: E) async throws -> E.Response
+    func request<E: TMDBEndpointProtocol>(_ endpoint: E) async throws -> E.Response
+    
 }
 
 final class TMDBService: TMDBServiceProtocol {
@@ -16,7 +17,7 @@ final class TMDBService: TMDBServiceProtocol {
     private let apiKey = TMDBConfig.apiKey
     private let baseURL = TMDBConfig.baseURL
     
-    func request<E: TMDBEndpoint>(_ endpoint: E) async throws -> E.Response {
+    func request<E: TMDBEndpointProtocol>(_ endpoint: E) async throws -> E.Response {
         
         guard var components = URLComponents(string: baseURL + endpoint.path) else {
             throw URLError(.badURL)
@@ -41,7 +42,7 @@ final class TMDBService: TMDBServiceProtocol {
 //MARK : - Fake Service for Testing
 final class FakeTMDBService: TMDBServiceProtocol {
     
-    func request<E: TMDBEndpoint>(_ endpoint: E) async throws -> E.Response {
+    func request<E: TMDBEndpointProtocol>(_ endpoint: E) async throws -> E.Response {
         // 如果 Response 型別支援 Mockable → 回傳 fake
         if let mockType = E.Response.self as? (any Mockable.Type),
            let decoded = mockType.mock as? E.Response {

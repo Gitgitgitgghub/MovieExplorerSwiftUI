@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct SearchMovies: TMDBEndpoint {
+struct SearchMovies: TMDBEndpointProtocol {
     typealias Response = MovieResponse
 
     let query: String

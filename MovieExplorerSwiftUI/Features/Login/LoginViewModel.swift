@@ -17,7 +17,18 @@ final class LoginViewModel: ObservableObject {
     nonisolated init() {}
 
     func login(using coordinator: AppCoordinator) {
-        coordinator.currentTab = .home
-        coordinator.isAuthenticated = true
+        Task {
+            do {
+                try await loadTMDBConfiuration()
+                coordinator.currentTab = .home
+                coordinator.isAuthenticated = true
+                print("Login successful")
+            }
+        }
     }
+    
+    private func loadTMDBConfiuration() async throws {
+        try await TMDBConfigurationLoader.shared.loadIfNeeded()
+    }
+        
 }

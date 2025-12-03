@@ -10,6 +10,8 @@ import Foundation
 final class TMDBConfig {
     private static let apiKeyResourceName = "APIKey"
     private static let apiKeyResourceExtension = "json"
+    private static var imageConfiguration = TMDBImageConfiguration.fallback
+    private static let imageConfigurationLock = NSLock()
 
     /// Reads the API key from `APIKey.json` bundled with the application.
     static let apiKey: String = {
@@ -21,8 +23,26 @@ final class TMDBConfig {
     }()
 
     static let baseURL = "https://api.themoviedb.org/3"
-    static let posterBaseURL = "https://image.tmdb.org/t/p/w500"
-    static let backdropBaseURL = "https://image.tmdb.org/t/p/w780"
+
+    static var posterBaseURL: String {
+        imageConfigurationLock.lock()
+        let baseURL = imageConfiguration.posterBaseURL
+        imageConfigurationLock.unlock()
+        return baseURL
+    }
+
+    static var backdropBaseURL: String {
+        imageConfigurationLock.lock()
+        let baseURL = imageConfiguration.backdropBaseURL
+        imageConfigurationLock.unlock()
+        return baseURL
+    }
+
+    static func updateImageConfiguration(_ configuration: TMDBImageConfiguration) {
+        imageConfigurationLock.lock()
+        imageConfiguration = configuration
+        imageConfigurationLock.unlock()
+    }
 
     static func loadAPIKey(using bundle: Bundle = .main) throws -> String {
         guard let fileURL = bundle.url(forResource: apiKeyResourceName, withExtension: apiKeyResourceExtension) else {

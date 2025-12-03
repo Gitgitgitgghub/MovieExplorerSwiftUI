@@ -7,43 +7,7 @@
 
 import Foundation
 
-struct TrendingMovies: TMDBEndpoint {
-    
-    typealias Response = MovieResponse
-
-    var path: String { "/trending/movie/day" }
-    var queryItems: [URLQueryItem] { [] }
-}
-
-struct PopularMovies: TMDBEndpoint {
-    typealias Response = MovieResponse
-
-    var path: String { "/movie/popular" }
-    var queryItems: [URLQueryItem] { [] }
-}
-
-struct TopRatedMovies: TMDBEndpoint {
-    typealias Response = MovieResponse
-
-    var path: String { "/movie/top_rated" }
-    var queryItems: [URLQueryItem] { [] }
-}
-
-struct UpcomingMovies: TMDBEndpoint {
-    typealias Response = MovieResponse
-
-    var path: String { "/movie/upcoming" }
-    var queryItems: [URLQueryItem] { [] }
-}
-
-struct NowPlayingMovies: TMDBEndpoint {
-    typealias Response = MovieResponse
-
-    var path: String { "/movie/now_playing" }
-    var queryItems: [URLQueryItem] { [] }
-}
-
-struct MovieDetails: TMDBEndpoint {
+struct MovieDetails: TMDBEndpointProtocol {
     typealias Response = MovieResponse
 
     let movieID: Int
@@ -51,7 +15,7 @@ struct MovieDetails: TMDBEndpoint {
     var queryItems: [URLQueryItem] { [] }
 }
 
-struct MovieCredits: TMDBEndpoint {
+struct MovieCredits: TMDBEndpointProtocol {
     typealias Response = CreditsResponse
 
     let movieID: Int
@@ -59,7 +23,43 @@ struct MovieCredits: TMDBEndpoint {
     var queryItems: [URLQueryItem] { [] }
 }
 
-struct SimilarMovies: TMDBEndpoint {
+struct TrendingMovies: TMDBEndpointProtocol {
+    
+    typealias Response = MovieResponse
+
+    var path: String { "/trending/movie/day" }
+    var queryItems: [URLQueryItem] { [] }
+}
+
+struct PopularMovies: TMDBEndpointProtocol {
+    typealias Response = MovieResponse
+
+    var path: String { "/movie/popular" }
+    var queryItems: [URLQueryItem] { [] }
+}
+
+struct TopRatedMovies: TMDBEndpointProtocol {
+    typealias Response = MovieResponse
+
+    var path: String { "/movie/top_rated" }
+    var queryItems: [URLQueryItem] { [] }
+}
+
+struct UpcomingMovies: TMDBEndpointProtocol {
+    typealias Response = MovieResponse
+
+    var path: String { "/movie/upcoming" }
+    var queryItems: [URLQueryItem] { [] }
+}
+
+struct NowPlayingMovies: TMDBEndpointProtocol {
+    typealias Response = MovieResponse
+
+    var path: String { "/movie/now_playing" }
+    var queryItems: [URLQueryItem] { [] }
+}
+
+struct SimilarMovies: TMDBEndpointProtocol {
     typealias Response = MovieResponse
 
     let id: Int

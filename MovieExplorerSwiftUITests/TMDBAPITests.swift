@@ -34,13 +34,23 @@ final class TMDBAPITests: XCTestCase {
     }
     
     func testTrendingMoviesAPI() async throws {
-            let service = TMDBService()
+        let service = TMDBService()
 
-            let response: MovieResponse = try await service.request(TrendingMovies())
+        let response: MovieResponse = try await service.request(.trendingMovies)
 
-            XCTAssertFalse(response.results.isEmpty, "Trending API should return movies")
+        XCTAssertFalse(response.results.isEmpty, "Trending API should return movies")
 
-            print("Trending first movie:", response.results.first?.title ?? "N/A")
+        print("Trending first movie:", response.results.first?.title ?? "N/A")
+    }
+
+    func testConfigurationDetailsAPI_ReturnsImageConfig() async throws {
+        let service = TMDBService()
+
+        let response: ConfigurationDetailsResponse = try await service.request(ConfigurationDetails())
+
+        XCTAssertFalse(response.images.posterSizes.isEmpty, "Configuration API should return image sizes")
+
+        print("Poster sizes:", response.images.posterSizes)
     }
 
 }

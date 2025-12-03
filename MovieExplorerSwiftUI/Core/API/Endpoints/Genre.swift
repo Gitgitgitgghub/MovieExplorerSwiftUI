@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct MovieGenres: TMDBEndpoint {
+struct MovieGenres: TMDBEndpointProtocol {
     typealias Response = GenreResponse
 
     var path: String { "/genre/movie/list" }
