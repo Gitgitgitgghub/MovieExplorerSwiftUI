@@ -14,6 +14,7 @@ class HomeViewModel: ObservableObject {
     @Published var trending: [Movie] = []
     @Published var popular: [Movie] = []
     @Published var topRated: [Movie] = []
+    @Published var sections: [Section] = [.trending, .popular, .topRated]
     
     private let service: TMDBServiceProtocol
     
@@ -33,6 +34,21 @@ class HomeViewModel: ObservableObject {
             
         }
         
+    }
+    
+    //MARK: Section
+    enum Section {
+        case trending
+        case popular
+        case topRated
+        
+        var title: String {
+            switch self {
+            case .topRated: return "最高評分的電影"
+            case .popular: return "最受歡迎的電影"
+            default: return ""
+            }
+        }
     }
     
 }
