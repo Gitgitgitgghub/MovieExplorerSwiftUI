@@ -1,5 +1,5 @@
 //
-//  LogingPage.swift
+//  LoginPage.swift
 //  MovieExplorerSwiftUI
 //
 //  Created by Brant on 2025/12/1.
@@ -7,12 +7,13 @@
 
 import SwiftUI
 
-struct LogingPage: View {
+struct LoginPage: View {
     
     @EnvironmentObject private var coordinator: AppCoordinator
-    @StateObject private var viewModel: LoginViewModel
+    @Environment(\.colorScheme) private var colorScheme
+    @StateObject private var viewModel: LoginPageViewModel
     
-    init(viewModel: LoginViewModel = LoginViewModel()) {
+    init(viewModel: LoginPageViewModel = LoginPageViewModel()) {
         _viewModel = StateObject(wrappedValue: viewModel)
     }
     
@@ -21,21 +22,21 @@ struct LogingPage: View {
             Text("Welcome back")
                 .font(.title)
                 .bold()
-                .foregroundColor(Color.rgb(145, 163, 199))
+                .foregroundColor(palette.mutedText)
             TextField(text: $viewModel.email) {
                 Text("Email")
-                    .foregroundColor(Color.rgb(145, 163, 199))
+                    .foregroundColor(palette.mutedText)
             }
             .padding()
-            .background(Color.rgb(35, 46, 72))
+            .background(palette.surface)
             .cornerRadius(10)
             .padding(.horizontal, 16)
             SecureField(text: $viewModel.password) {
                 Text("Password")
-                    .foregroundColor(Color.rgb(145, 163, 199))
+                    .foregroundColor(palette.mutedText)
             }
             .padding()
-            .background(Color.rgb(35, 46, 72))
+            .background(palette.surface)
             .cornerRadius(10)
             .padding(.horizontal, 16)
             Button(action: {
@@ -46,7 +47,7 @@ struct LogingPage: View {
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
                     .padding()
-                    .background(Color.rgb(74, 144, 226))
+                    .background(palette.accent)
                     .clipShape(.capsule)
             }
             .padding(.init(top: 32, leading: 16, bottom: 0, trailing: 16))
@@ -57,20 +58,18 @@ struct LogingPage: View {
                     
                 }) {
                     Image(systemName: "apple.logo")
-                        .foregroundColor(.white)
                         .frame(width: 60, height: 60)
-                        .background(.ultraThinMaterial)
                         .clipShape(.circle)
+                        .glassEffect()
                 }
                 
                 Button(action: {
                     
                 }) {
                     Image(systemName: "apple.logo")
-                        .foregroundColor(.white)
                         .frame(width: 60, height: 60)
-                        .background(.ultraThinMaterial)
                         .clipShape(.circle)
+                        .glassEffect()
                 }
             }
             .padding(.top, 32)
@@ -84,21 +83,26 @@ struct LogingPage: View {
         HStack {
             Rectangle()
                 .frame(maxWidth: .infinity, maxHeight: 1)
-                .foregroundColor(Color.rgb(145, 163, 199))
+                .foregroundColor(palette.mutedText)
             Text("Or continue with")
-                .foregroundColor(Color.rgb(145, 163, 199))
+                .foregroundColor(palette.mutedText)
                 .lineLimit(1)
                 .padding(8)
                 .layoutPriority(1)
             Rectangle()
                 .frame(maxWidth: .infinity, maxHeight: 1)
-                .foregroundColor(Color.rgb(145, 163, 199))
+                .foregroundColor(palette.mutedText)
         }
         .padding(.horizontal, 16)
     }
 }
 
+private extension LoginPage {
+    var palette: AppColor.Palette {
+        AppColor.palette(for: colorScheme)
+    }
+}
 #Preview {
-    LogingPage()
+    LoginPage()
         .environmentObject(AppCoordinator())
 }

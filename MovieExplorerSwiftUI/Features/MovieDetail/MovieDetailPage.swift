@@ -1,5 +1,5 @@
 //
-//  MovieDetailView.swift
+//  MovieDetailPage.swift
 //  MovieExplorerSwiftUI
 //
 //  Created by Brant on 2025/11/27.
@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct MovieDetailView: View {
+struct MovieDetailPage: View {
     
     var movieID: Int
     
@@ -17,5 +17,5 @@ struct MovieDetailView: View {
 }
 
 #Preview {
-    MovieDetailView(movieID: 0)
+    MovieDetailPage(movieID: 0)
 }

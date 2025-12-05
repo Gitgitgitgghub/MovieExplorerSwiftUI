@@ -16,12 +16,13 @@ struct MovieExplorerSwiftUIApp: App {
         WindowGroup {
             Group {
                 if coordinator.isAuthenticated {
-                    MainTabView()
+                    MainTabPage()
                 } else {
-                    LogingPage()
+                    LoginPage()
                 }
             }
             .environmentObject(coordinator)
+            .preferredColorScheme(coordinator.theme.colorScheme)
             .animation(.easeInOut, value: coordinator.isAuthenticated)
         }
     }

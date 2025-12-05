@@ -9,8 +9,16 @@ import SwiftUI
 
 extension View {
     func appBackground() -> some View {
-        background {
-            AppGradients.cinematic
+        modifier(AppBackgroundModifier())
+    }
+}
+
+private struct AppBackgroundModifier: ViewModifier {
+    @Environment(\.colorScheme) private var colorScheme
+    
+    func body(content: Content) -> some View {
+        content.background {
+            AppGradients.background(for: colorScheme)
                 .ignoresSafeArea()
         }
     }

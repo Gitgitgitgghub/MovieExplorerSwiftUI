@@ -1,5 +1,5 @@
 //
-//  LoginViewModel.swift
+//  LoginPageViewModel.swift
 //  MovieExplorerSwiftUI
 //
 //  Created by Brant on 2025/12/02.
@@ -8,7 +8,7 @@
 import SwiftUI
 
 @MainActor
-final class LoginViewModel: ObservableObject {
+final class LoginPageViewModel: ObservableObject {
     
     @Published var email: String = ""
     @Published var password: String = ""

@@ -1,5 +1,5 @@
 //
-//  HomeViewModel.swift
+//  HomePageViewModel.swift
 //  MovieExplorerSwiftUI
 //
 //  Created by Brant on 2025/11/28.
@@ -8,7 +8,7 @@
 import Foundation
 
 @MainActor
-class HomeViewModel: ObservableObject {
+class HomePageViewModel: ObservableObject {
     
     //MARK: - Published Properties
     @Published var trending: [Movie] = []

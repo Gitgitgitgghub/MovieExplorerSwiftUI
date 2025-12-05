@@ -1,5 +1,5 @@
 //
-//  HomeView.swift
+//  HomePage.swift
 //  MovieExplorerSwiftUI
 //
 //  Created by Brant on 2025/11/27.
@@ -7,12 +7,13 @@
 
 import SwiftUI
 
-struct HomeView: View {
+struct HomePage: View {
     
     @EnvironmentObject var coordinator: AppCoordinator
-    @StateObject var viewModel = HomeViewModel()
+    @Environment(\.colorScheme) private var colorScheme
+    @StateObject var viewModel = HomePageViewModel()
     
-    init(viewModel: HomeViewModel = HomeViewModel()) {
+    init(viewModel: HomePageViewModel = HomePageViewModel()) {
         _viewModel = StateObject(wrappedValue: viewModel)
     }
     
@@ -44,7 +45,7 @@ struct HomeView: View {
                             }
                             
                             LinearGradient(
-                                colors: [.black.opacity(0.85), .clear],
+                                colors: [palette.overlayStart, palette.overlayEnd],
                                 startPoint: .bottom,
                                 endPoint: .top
                             )
@@ -55,57 +56,37 @@ struct HomeView: View {
                             VStack(alignment: .leading, spacing: 4) {
                                 Text(item.title)
                                     .font(.title3.weight(.bold))
-                                    .foregroundColor(.white)
+                                    .foregroundColor(palette.onMediaPrimary)
                                     .lineLimit(2)
                                 Text("評分：\(item.voteAverage, specifier: "%.1f")")
                                     .font(.subheadline.weight(.semibold))
-                                    .foregroundColor(.white.opacity(0.85))
+                                    .foregroundColor(palette.onMediaSecondary)
                             }
                             .padding(8)
                             .padding(12)
                         }
                         .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-                        .shadow(color: .black.opacity(0.25), radius: 8, x: 0, y: 8)
+                        .shadow(color: palette.shadow, radius: 8, x: 0, y: 8)
                         .onTapGesture {
                             coordinator.push(.movieDetail(id: item.id))
                         }
                     }
                     sectionHeader(section: .popular)
-                    horizontalMovieRow(
+                    popularMovieRow(
                         movies: viewModel.popular,
                         cardWidth: 200,
                         cardHeight: 300
-                    ) { movie in
-                        VStack(alignment: .leading) {
-                            Text(movie.title)
-                                .font(.headline)
-                                .foregroundStyle(.white)
-                                .lineLimit(1)
-                            Text(String(format: "人氣：%.0f", movie.popularity))
-                                .font(.caption.weight(.semibold))
-                                .foregroundColor(.white.opacity(0.85))
-                        }
-                    }
+                    )
                     
                     sectionHeader(section: .nowPlaying)
                     nowPlayingRow()
                     
                     sectionHeader(section: .topRated)
-                    horizontalMovieRow(
+                    topRatedMovieRow(
                         movies: viewModel.topRated,
                         cardWidth: 160,
                         cardHeight: 250
-                    ) { movie in
-                        VStack(alignment: .leading) {
-                            Text(movie.title)
-                                .font(.headline)
-                                .foregroundStyle(.white)
-                                .lineLimit(1)
-                            Text(String(format: "⭐️ %.1f", movie.voteAverage))
-                                .font(.caption)
-                                .foregroundColor(.white.opacity(0.85))
-                        }
-                    }
+                    )
                     
                     sectionHeader(section: .upcoming)
                     upcomingRow()
@@ -120,19 +101,18 @@ struct HomeView: View {
     }
     
     
-    private func sectionHeader(section: HomeViewModel.Section) -> some View {
+    private func sectionHeader(section: HomePageViewModel.Section) -> some View {
         Text(section.title)
-            .foregroundColor(.white)
+            .foregroundColor(palette.primaryText)
             .font(.title.weight(.bold))
             .padding(.horizontal, 16)
     }
 
     @ViewBuilder
-    private func horizontalMovieRow<Footer: View>(
+    private func popularMovieRow(
         movies: [Movie],
         cardWidth: CGFloat,
-        cardHeight: CGFloat,
-        @ViewBuilder footer: @escaping (Movie) -> Footer
+        cardHeight: CGFloat
     ) -> some View {
         ScrollView(.horizontal, showsIndicators: false) {
             LazyHStack(spacing: 16) {
@@ -143,9 +123,17 @@ struct HomeView: View {
                             .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
                             .overlay(
                                 RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                    .stroke(Color.white.opacity(0.08))
+                                    .stroke(palette.cardStroke)
                             )
-                        footer(movie)
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(movie.title)
+                                .font(.headline)
+                                .foregroundColor(palette.primaryText)
+                                .lineLimit(1)
+                            Text(String(format: "人氣：%.0f", movie.popularity))
+                                .font(.caption.weight(.semibold))
+                                .foregroundColor(palette.secondaryText)
+                        }
                     }
                     .padding(.bottom, 4)
                     .onTapGesture {
@@ -165,6 +153,14 @@ struct HomeView: View {
                     ZStack(alignment: .bottomLeading) {
                         posterImage(for: movie)
                             .frame(width: 260, height: 360)
+                            .overlay(alignment: .bottom){
+                                LinearGradient(
+                                    colors: [palette.overlayStart, palette.overlayEnd],
+                                    startPoint: .bottom,
+                                    endPoint: .top
+                                )
+                                .frame(maxWidth: .infinity,maxHeight: 140, alignment: .bottom)
+                            }
                             .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
                             .overlay(alignment: .topLeading) {
                                 Label("現正上映", systemImage: "play.circle.fill")
@@ -175,29 +171,22 @@ struct HomeView: View {
                                     .padding(12)
                             }
                         
-                        LinearGradient(
-                            colors: [.black.opacity(0.8), .clear],
-                            startPoint: .bottom,
-                            endPoint: .top
-                        )
-                        .frame(height: 140)
-                        .frame(maxWidth: .infinity, alignment: .bottom)
+                        
                         
                         VStack(alignment: .leading, spacing: 4) {
                             Text(movie.title)
                                 .font(.title3.weight(.bold))
-                                .foregroundColor(.white)
+                                .foregroundColor(palette.onMediaPrimary)
                                 .lineLimit(2)
                             Text("平均評分 \(movie.ratingText)")
                                 .font(.caption.weight(.semibold))
-                                .foregroundColor(.white.opacity(0.85))
+                                .foregroundColor(palette.onMediaSecondary)
                             Text("票房熱度 \(Int(movie.popularity))")
                                 .font(.caption2.weight(.semibold))
-                                .foregroundColor(.white.opacity(0.75))
+                                .foregroundColor(palette.onMediaSecondary)
                         }
                         .padding(16)
                     }
-                    .shadow(color: .black.opacity(0.25), radius: 8, x: 0, y: 8)
                     .onTapGesture {
                         coordinator.push(.movieDetail(id: movie.id))
                     }
@@ -215,7 +204,7 @@ struct HomeView: View {
                     VStack(alignment: .leading, spacing: 12) {
                         ZStack(alignment: .topLeading) {
                             posterImage(for: movie)
-                                .frame(width: 220, height: 320)
+                                .frame(width: 240, height: 320)
                                 .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
                             
                             Text("上映：\(releaseDateText(for: movie))")
@@ -229,22 +218,62 @@ struct HomeView: View {
                         VStack(alignment: .leading, spacing: 4) {
                             Text(movie.title)
                                 .font(.headline)
-                                .foregroundColor(.white)
+                                .foregroundColor(palette.primaryText)
                                 .lineLimit(2)
                             Text(movie.overview)
                                 .font(.caption)
-                                .foregroundColor(.white.opacity(0.8))
+                                .foregroundColor(palette.secondaryText)
                                 .lineLimit(3)
                         }
+                        .padding(.horizontal, 4)
                         
                         Label("加入片單提醒", systemImage: "bell")
                             .font(.caption.weight(.bold))
+                            .foregroundColor(palette.primaryText)
                             .padding(.vertical, 6)
                             .padding(.horizontal, 12)
-                            .background(Color.white.opacity(0.12), in: Capsule())
+                            .background(palette.badgeBackground, in: Capsule())
                     }
                     .frame(width: 240, alignment: .leading)
                     .padding(.vertical, 8)
+                    .onTapGesture {
+                        coordinator.push(.movieDetail(id: movie.id))
+                    }
+                }
+            }
+            .padding(.horizontal)
+        }
+    }
+    
+    @ViewBuilder
+    private func topRatedMovieRow(
+        movies: [Movie],
+        cardWidth: CGFloat,
+        cardHeight: CGFloat
+    ) -> some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            LazyHStack(spacing: 16) {
+                ForEach(movies) { movie in
+                    VStack(alignment: .leading, spacing: 8) {
+                        posterImage(for: movie)
+                            .frame(width: cardWidth, height: cardHeight)
+                            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                    .stroke(palette.cardStroke)
+                            )
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(movie.title)
+                                .font(.headline)
+                                .foregroundColor(palette.primaryText)
+                                .lineLimit(1)
+                            Text(String(format: "⭐️ %.1f", movie.voteAverage))
+                                .font(.caption)
+                                .foregroundColor(palette.secondaryText)
+                        }
+                    }
+                    .frame(width: cardWidth)
+                    .padding(.bottom, 4)
                     .onTapGesture {
                         coordinator.push(.movieDetail(id: movie.id))
                     }
@@ -298,8 +327,13 @@ struct HomeView: View {
     
 }
 
+private extension HomePage {
+    var palette: AppColor.Palette {
+        AppColor.palette(for: colorScheme)
+    }
+}
 
 #Preview {
-    HomeView(viewModel: HomeViewModel(service: FakeTMDBService()))
+    HomePage(viewModel: HomePageViewModel(service: FakeTMDBService()))
         .environmentObject(AppCoordinator())
 }

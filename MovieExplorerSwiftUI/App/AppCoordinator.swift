@@ -13,7 +13,7 @@ enum AppTab: Hashable {
     case home
     case search
     case watchlist
-    case profile
+    case settings
 }
 
 // MARK: - Global Route
@@ -28,12 +28,13 @@ final class AppCoordinator: ObservableObject {
 
     @Published var isAuthenticated: Bool = false
     @Published var currentTab: AppTab = .home
+    @Published var theme: AppTheme = .system
 
     // MARK: - Navigation Paths (One per tab)
     @Published var homePath = NavigationPath()
     @Published var searchPath = NavigationPath()
     @Published var watchlistPath = NavigationPath()
-    @Published var profilePath = NavigationPath()
+    @Published var settingsPath = NavigationPath()
 
     // MARK: - Push a route
     func push(_ route: AppRoute) {
@@ -44,8 +45,8 @@ final class AppCoordinator: ObservableObject {
             searchPath.append(route)
         case .watchlist:
             watchlistPath.append(route)
-        case .profile:
-            profilePath.append(route)
+        case .settings:
+            settingsPath.append(route)
         }
     }
 
@@ -59,8 +60,8 @@ final class AppCoordinator: ObservableObject {
             searchPath.append(route)
         case .watchlist:
             watchlistPath.append(route)
-        case .profile:
-            profilePath.append(route)
+        case .settings:
+            settingsPath.append(route)
         }
     }
 
@@ -73,8 +74,8 @@ final class AppCoordinator: ObservableObject {
             if !searchPath.isEmpty { searchPath.removeLast() }
         case .watchlist:
             if !watchlistPath.isEmpty { watchlistPath.removeLast() }
-        case .profile:
-            if !profilePath.isEmpty { profilePath.removeLast() }
+        case .settings:
+            if !settingsPath.isEmpty { settingsPath.removeLast() }
         }
     }
 
@@ -84,7 +85,7 @@ final class AppCoordinator: ObservableObject {
         case .home: homePath = NavigationPath()
         case .search: searchPath = NavigationPath()
         case .watchlist: watchlistPath = NavigationPath()
-        case .profile: profilePath = NavigationPath()
+        case .settings: settingsPath = NavigationPath()
         }
     }
 
@@ -93,13 +94,48 @@ final class AppCoordinator: ObservableObject {
     func destination(for route: AppRoute) -> some View {
         switch route {
         case .movieDetail(let id):
-            MovieDetailView(movieID: id)
+            MovieDetailPage(movieID: id)
         case .actorDetail(let id):
-            ActorDetailView(actorID: id)
+            ActorDetailPage(actorID: id)
         case .search:
-            SearchView()
+            SearchPage()
         case .watchlist:
-            WatchlistView()
+            WatchlistPage()
+        }
+    }
+}
+
+enum AppTheme: String, CaseIterable, Identifiable {
+    case system
+    case light
+    case dark
+    
+    var id: String { rawValue }
+    
+    var title: String {
+        switch self {
+        case .system: return "系統"
+        case .light: return "淺色"
+        case .dark: return "深色"
+        }
+    }
+    
+    var description: String {
+        switch self {
+        case .system: return "依照系統設定自動切換。"
+        case .light: return "強制使用明亮背景與高對比文字。"
+        case .dark: return "以影院感深色主題呈現。"
+        }
+    }
+    
+    var colorScheme: ColorScheme? {
+        switch self {
+        case .system:
+            return nil
+        case .light:
+            return .light
+        case .dark:
+            return .dark
         }
     }
 }

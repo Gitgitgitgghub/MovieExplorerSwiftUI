@@ -1,5 +1,5 @@
 //
-//  MainTabView.swift
+//  MainTabPage.swift
 //  MovieExplorerSwiftUI
 //
 //  Created by Brant on 2025/11/27.
@@ -8,7 +8,7 @@
 import SwiftUI
 
 
-struct MainTabView: View {
+struct MainTabPage: View {
     
     @EnvironmentObject var coordinator: AppCoordinator
     
@@ -16,7 +16,7 @@ struct MainTabView: View {
         TabView(selection: $coordinator.currentTab) {
             // HOME TAB
             NavigationStack(path: $coordinator.homePath) {
-                HomeView()
+                HomePage()
                     .navigationDestination(for: AppRoute.self) { route in
                         coordinator.destination(for: route)
                     }
@@ -25,7 +25,7 @@ struct MainTabView: View {
             .tag(AppTab.home)
             // SEARCH TAB
             NavigationStack(path: $coordinator.searchPath) {
-                SearchView()
+                SearchPage()
                     .navigationDestination(for: AppRoute.self) { route in
                         coordinator.destination(for: route)
                     }
@@ -34,28 +34,28 @@ struct MainTabView: View {
             .tag(AppTab.search)
             // WATCHLIST TAB
             NavigationStack(path: $coordinator.watchlistPath) {
-                WatchlistView()
+                WatchlistPage()
                     .navigationDestination(for: AppRoute.self) { route in
                         coordinator.destination(for: route)
                     }
             }
             .tabItem { Label("Watchlist", systemImage: "star") }
             .tag(AppTab.watchlist)
-            // PROFILE TAB (optional)
-            NavigationStack(path: $coordinator.profilePath) {
-                ProfileView()
+            // SETTINGS TAB
+            NavigationStack(path: $coordinator.settingsPath) {
+                SettingPage()
                     .navigationDestination(for: AppRoute.self) { route in
                         coordinator.destination(for: route)
                     }
             }
-            .tabItem { Label("Profile", systemImage: "person") }
-            .tag(AppTab.profile)
+            .tabItem { Label("Settings", systemImage: "gearshape") }
+            .tag(AppTab.settings)
         }
     }
 }
 
 
 #Preview {
-    MainTabView()
+    MainTabPage()
         .environmentObject(AppCoordinator())
 }
