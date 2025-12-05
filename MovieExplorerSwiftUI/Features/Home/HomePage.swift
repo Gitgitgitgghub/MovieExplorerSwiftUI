@@ -28,7 +28,7 @@ struct HomePage: View {
                         cardHeight: 450,
                         swipeThresholdRatio: 0.25
                     ) { item in
-                        ZStack(alignment: .bottomLeading) {
+                        ZStack(alignment: .bottomTrailing) {
                             AsyncImage(url: item.posterURL) { phase in
                                 switch phase {
                                 case .success(let image):
@@ -53,17 +53,12 @@ struct HomePage: View {
                             .frame(maxWidth: .infinity, alignment: .bottom)
                             .allowsHitTesting(false)
                             
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(item.title)
-                                    .font(.title3.weight(.bold))
-                                    .foregroundColor(palette.onMediaPrimary)
-                                    .lineLimit(2)
-                                Text("評分：\(item.voteAverage, specifier: "%.1f")")
-                                    .font(.subheadline.weight(.semibold))
-                                    .foregroundColor(palette.onMediaSecondary)
-                            }
-                            .padding(8)
-                            .padding(12)
+                            Text(String(format: "⭐️  %.1f", item.voteAverage))
+                                .font(.subheadline.weight(.bold))
+                                .foregroundColor(palette.primaryText)
+                                .padding(6)
+                                .glassEffect()
+                                .padding()
                         }
                         .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
                         .shadow(color: palette.shadow, radius: 8, x: 0, y: 8)
@@ -126,12 +121,8 @@ struct HomePage: View {
                                     .stroke(palette.cardStroke)
                             )
                         VStack(alignment: .leading, spacing: 4) {
-                            Text(movie.title)
-                                .font(.headline)
-                                .foregroundColor(palette.primaryText)
-                                .lineLimit(1)
                             Text(String(format: "人氣：%.0f", movie.popularity))
-                                .font(.caption.weight(.semibold))
+                                .font(.subheadline.weight(.bold))
                                 .foregroundColor(palette.secondaryText)
                         }
                     }
@@ -150,17 +141,9 @@ struct HomePage: View {
         ScrollView(.horizontal, showsIndicators: false) {
             LazyHStack(spacing: 20) {
                 ForEach(viewModel.nowPlaying) { movie in
-                    ZStack(alignment: .bottomLeading) {
+                    VStack(alignment: .leading, spacing: 8) {
                         posterImage(for: movie)
                             .frame(width: 260, height: 360)
-                            .overlay(alignment: .bottom){
-                                LinearGradient(
-                                    colors: [palette.overlayStart, palette.overlayEnd],
-                                    startPoint: .bottom,
-                                    endPoint: .top
-                                )
-                                .frame(maxWidth: .infinity,maxHeight: 140, alignment: .bottom)
-                            }
                             .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
                             .overlay(alignment: .topLeading) {
                                 Label("現正上映", systemImage: "play.circle.fill")
@@ -170,22 +153,9 @@ struct HomePage: View {
                                     .background(.ultraThinMaterial, in: Capsule())
                                     .padding(12)
                             }
-                        
-                        
-                        
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(movie.title)
-                                .font(.title3.weight(.bold))
-                                .foregroundColor(palette.onMediaPrimary)
-                                .lineLimit(2)
-                            Text("平均評分 \(movie.ratingText)")
-                                .font(.caption.weight(.semibold))
-                                .foregroundColor(palette.onMediaSecondary)
-                            Text("票房熱度 \(Int(movie.popularity))")
-                                .font(.caption2.weight(.semibold))
-                                .foregroundColor(palette.onMediaSecondary)
-                        }
-                        .padding(16)
+                        Text("票房熱度: \(Int(movie.popularity))")
+                            .font(.subheadline.weight(.bold))
+                            .foregroundColor(palette.onMediaSecondary)
                     }
                     .onTapGesture {
                         coordinator.push(.movieDetail(id: movie.id))
@@ -201,7 +171,7 @@ struct HomePage: View {
         ScrollView(.horizontal, showsIndicators: false) {
             LazyHStack(spacing: 20) {
                 ForEach(viewModel.upcoming) { movie in
-                    VStack(alignment: .leading, spacing: 12) {
+                    VStack(alignment: .leading, spacing: 8) {
                         ZStack(alignment: .topLeading) {
                             posterImage(for: movie)
                                 .frame(width: 240, height: 320)
@@ -214,25 +184,17 @@ struct HomePage: View {
                                 .background(.ultraThinMaterial, in: Capsule())
                                 .padding(12)
                         }
-                        
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(movie.title)
-                                .font(.headline)
+                        HStack(alignment: .center) {
+                            Spacer()
+                            Label("加入片單提醒", systemImage: "bell")
+                                .font(.caption.weight(.bold))
                                 .foregroundColor(palette.primaryText)
-                                .lineLimit(2)
-                            Text(movie.overview)
-                                .font(.caption)
-                                .foregroundColor(palette.secondaryText)
-                                .lineLimit(3)
+                                .padding(.vertical, 6)
+                                .padding(.horizontal, 12)
+                                .background(palette.badgeBackground, in: Capsule())
+                            Spacer()
                         }
-                        .padding(.horizontal, 4)
                         
-                        Label("加入片單提醒", systemImage: "bell")
-                            .font(.caption.weight(.bold))
-                            .foregroundColor(palette.primaryText)
-                            .padding(.vertical, 6)
-                            .padding(.horizontal, 12)
-                            .background(palette.badgeBackground, in: Capsule())
                     }
                     .frame(width: 240, alignment: .leading)
                     .padding(.vertical, 8)
@@ -263,12 +225,8 @@ struct HomePage: View {
                                     .stroke(palette.cardStroke)
                             )
                         VStack(alignment: .leading, spacing: 4) {
-                            Text(movie.title)
-                                .font(.headline)
-                                .foregroundColor(palette.primaryText)
-                                .lineLimit(1)
                             Text(String(format: "⭐️ %.1f", movie.voteAverage))
-                                .font(.caption)
+                                .font(.subheadline.bold())
                                 .foregroundColor(palette.secondaryText)
                         }
                     }
