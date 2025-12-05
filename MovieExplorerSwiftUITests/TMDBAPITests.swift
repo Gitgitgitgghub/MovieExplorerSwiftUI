@@ -33,14 +33,36 @@ final class TMDBAPITests: XCTestCase {
         }
     }
     
-    func testTrendingMoviesAPI() async throws {
+    func testTrendingMoviesAPI_ReturnsResults() async throws {
         let service = TMDBService()
 
-        let response: MovieResponse = try await service.request(.trendingMovies)
+        let response: MovieResponse = try await service.request(TrendingMovies())
 
         XCTAssertFalse(response.results.isEmpty, "Trending API should return movies")
 
         print("Trending first movie:", response.results.first?.title ?? "N/A")
+    }
+
+    func testNowPlayingMoviesAPI_ReturnsResults() async throws {
+        let service = TMDBService()
+
+        let response: MovieResponse = try await service.request(NowPlayingMovies())
+
+        XCTAssertFalse(response.results.isEmpty, "Now Playing API should return movies")
+        XCTAssertNotNil(response.results.first?.releaseDate, "Now Playing movies should include release dates")
+
+        print("Now Playing first movie:", response.results.first?.title ?? "N/A")
+    }
+
+    func testUpcomingMoviesAPI_ReturnsResults() async throws {
+        let service = TMDBService()
+
+        let response: MovieResponse = try await service.request(UpcomingMovies())
+
+        XCTAssertFalse(response.results.isEmpty, "Upcoming API should return movies")
+        XCTAssertNotNil(response.results.first?.releaseDate, "Upcoming movies should include release dates")
+
+        print("Upcoming first movie:", response.results.first?.title ?? "N/A")
     }
 
     func testConfigurationDetailsAPI_ReturnsImageConfig() async throws {

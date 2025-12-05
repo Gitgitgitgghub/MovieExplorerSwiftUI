@@ -1,19 +1,19 @@
-# Repository Guidelines
+# 儲存庫指南
 
-## Project Structure & Module Organization
-MovieExplorerSwiftUI follows a feature-first layout. App entry points, coordinators, and shared UI utilities live under `MovieExplorerSwiftUI/App`, while flows such as Home, Search, and Watchlist are grouped inside `MovieExplorerSwiftUI/Features/<FeatureName>`. Networking clients and request definitions live in `MovieExplorerSwiftUI/Core/API`. DTOs sit in `MovieExplorerSwiftUI/Core/Models`; they conform to `Decodable` and add `Mockable` conformance whenever previews need fixtures. All visual assets belong to `MovieExplorerSwiftUI/Assets.xcassets`, and UI regression helpers plus snapshot fixtures live in `MovieExplorerSwiftUITests`.
+## 專案結構與模組組織
+MovieExplorerSwiftUI 採用功能優先的檔案結構。App 進入點、協調器以及共享的 UI 工具放在 `MovieExplorerSwiftUI/App`。Home、Search、Watchlist 等流程放在 `MovieExplorerSwiftUI/Features/<FeatureName>`。網路客戶端與請求定義位於 `MovieExplorerSwiftUI/Core/API`。DTO 置於 `MovieExplorerSwiftUI/Core/Models`，需符合 `Decodable`，若預覽需要假資料則額外實作 `Mockable`。所有視覺素材集中在 `MovieExplorerSwiftUI/Assets.xcassets`，而 UI 回歸輔助工具與快照檔案放在 `MovieExplorerSwiftUITests`。
 
-## Build, Test, and Development Commands
-Compile the project with `xcodebuild -scheme MovieExplorerSwiftUI -destination 'generic/platform=iOS' build` to catch compiler regressions quickly. Execute `xcodebuild -scheme MovieExplorerSwiftUI -destination 'platform=iOS Simulator,name=iPhone 15,OS=17.4' test` before pushing so the XCTest suite (including async networking stubs) runs in a predictable simulator. Launch an editable workspace with `xed .` when iterating locally. Previews and manual smoke tests should rely on `FakeTMDBService` or dependency injection of stored fixtures to avoid real API calls.
+## 建置、測試與開發指令
+使用 `xcodebuild -scheme MovieExplorerSwiftUI -destination 'generic/platform=iOS' build` 進行編譯，以快速捕捉編譯回歸。推送前執行 `xcodebuild -scheme MovieExplorerSwiftUI -destination 'platform=iOS Simulator,name=iPhone 15,OS=17.4' test`，確保 XCTest（包含非同步網路 stub）在可預期的模擬器中通過。需要互動開發時執行 `xed .` 開啟可編輯的 workspace。預覽與手動測試應依賴 `FakeTMDBService` 或注入本地假資料，避免對實際 API 下請求。
 
-## Coding Style & Naming Conventions
-Use Swift 5 defaults with four-space indentation, `UpperCamelCase` types, `lowerCamelCase` properties/functions, and reserve `SCREAMING_SNAKE_CASE` for global constants like `TMDBConfig.apiKey`. Keep files near their features to avoid mega “Common” folders, e.g., reusable carousel components belong in `Features/Home/Components/`. Append `Protocol` only when disambiguation is needed (`TMDBServiceProtocol`). Async functions should expose intent (`loadTrending()`, `refreshWatchlist()`), and prefer small extensions over new utility files.
+## 程式風格與命名慣例
+遵循 Swift 5 預設、四格縮排。型別使用 `UpperCamelCase`，屬性與函式使用 `lowerCamelCase`，全域常數（如 `TMDBConfig.apiKey`）才使用 `SCREAMING_SNAKE_CASE`。讓檔案靠近功能區塊，避免出現龐大的「Common」資料夾，例如可重複使用的輪播元件應放在 `Features/Home/Components/`。僅在需要區分時才為協定名稱加上 `Protocol`（如 `TMDBServiceProtocol`）。非同步函式需命名清楚表意，例如 `loadTrending()`、`refreshWatchlist()`，並偏好在既有型別上擴充而非新增泛用工具檔。
 
-## Testing Guidelines
-Tests are written with XCTest; name them `test<Scenario>_<ExpectedBehavior>()` (e.g., `testTrendingMoviesAPI_ReturnsResults`). Always inject `FakeTMDBService` or local JSON fixtures in tests and previews so runs are deterministic. Run the simulator-based `xcodebuild … test` command before submitting for review, and keep async expectations tight with explicit timeouts to avoid flakes. When adding DTOs, include simple decoding tests to capture schema drift.
+## 測試指南
+測試使用 XCTest，命名慣例為 `test<情境>_<預期行為>()`（如 `testTrendingMoviesAPI_ReturnsResults`）。在測試與預覽中總是注入 `FakeTMDBService` 或本地 JSON 假資料，確保結果可重現。提交前務必執行 `xcodebuild … test` 模擬器測試，並為非同步 expectation 加上明確的 timeout 以避免 flake。新增 DTO 時請撰寫簡單的解碼測試以捕捉 schema 變動。
 
-## Commit & Pull Request Guidelines
-Write focused commits with imperative subjects (`Add HomeView hero banner`) and reference issues where applicable (`Fix watchlist sync (#42)`). Pull requests should summarize the change, list verification commands, and attach screenshots or simulator recordings for UI work. Call out API additions, `TMDBConfig` tweaks, or new mock fixtures in the description so reviewers know which configurations to update.
+## Commit 與 Pull Request 指南
+提交訊息需聚焦且使用祈使語氣（例如 `Add HomeView hero banner`），必要時引用 issue（如 `Fix watchlist sync (#42)`）。Pull Request 描述應概述變更、列出驗證指令，若涉及 UI 則附上截圖或模擬器錄影。若有新增 API、調整 `TMDBConfig`、或加入新的 mock，須在描述中特別標註以提醒審查者。
 
-## Security & Configuration Tips
-Never check in real TMDB API keys; keep them in `APIKey.json` or secure environment variables. When adding endpoints, update `TMDBConfig`, provide mock payloads, and document required parameters. Review logs and debug prints before committing to ensure no credentials or user data are exposed.
+## 安全與設定提醒
+請勿將真實 TMDB API 金鑰提交到版本庫；將其保存於 `APIKey.json` 或安全的環境變數。新增 API endpoint 時需更新 `TMDBConfig`、提供 mock payload，並記錄必要參數。Commit 前檢查 log 與除錯輸出，確保不會洩露憑證或使用者資料。
