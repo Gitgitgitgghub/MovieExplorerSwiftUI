@@ -155,7 +155,7 @@ struct HomePage: View {
                             }
                         Text("票房熱度: \(Int(movie.popularity))")
                             .font(.subheadline.weight(.bold))
-                            .foregroundColor(palette.onMediaSecondary)
+                            .foregroundColor(palette.secondaryText)
                     }
                     .onTapGesture {
                         coordinator.push(.movieDetail(id: movie.id))
