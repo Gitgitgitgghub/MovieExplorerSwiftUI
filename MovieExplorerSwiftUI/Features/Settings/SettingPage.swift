@@ -10,7 +10,6 @@ import SwiftUI
 struct SettingPage: View {
     
     @EnvironmentObject private var coordinator: AppCoordinator
-    @Environment(\.colorScheme) private var colorScheme
     @State private var notificationsEnabled = true
     @State private var autoplayTrailers = true
     @State private var cellularStreaming = false
@@ -36,76 +35,72 @@ struct SettingPage: View {
 
 private extension SettingPage {
     
-    var palette: AppColor.Palette {
-        AppColor.palette(for: colorScheme)
-    }
-    
     var profileCard: some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack(spacing: 16) {
                 Image(systemName: "person.crop.circle.fill")
                     .font(.system(size: 56))
-                    .foregroundColor(palette.accent)
+                    .foregroundColor(AppColor.accent)
                     .overlay(
                         Circle()
-                            .stroke(palette.cardStroke, lineWidth: 1)
+                            .stroke(AppColor.cardStroke, lineWidth: 1)
                     )
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Brant Chen")
                         .font(.title3.weight(.semibold))
-                        .foregroundColor(palette.primaryText)
+                        .foregroundColor(AppColor.primaryText)
                     Text("brant@example.com")
                         .font(.subheadline)
-                        .foregroundColor(palette.secondaryText)
+                        .foregroundColor(AppColor.secondaryText)
                 }
                 Spacer()
                 Button(action: {}) {
                     Text("管理帳號")
                         .font(.footnote.weight(.bold))
-                        .foregroundColor(palette.accent)
+                        .foregroundColor(AppColor.accent)
                         .padding(.vertical, 6)
                         .padding(.horizontal, 12)
                         .background(
                             Capsule()
-                                .fill(palette.badgeBackground)
+                                .fill(AppColor.badgeBackground)
                         )
                 }
             }
             
             Divider()
-                .background(palette.cardStroke)
+                .background(AppColor.cardStroke)
             
             HStack {
                 VStack(alignment: .leading) {
                     Text("會員等級")
                         .font(.caption)
-                        .foregroundColor(palette.secondaryText)
+                        .foregroundColor(AppColor.secondaryText)
                     Text("Cinephile+")
                         .font(.headline)
-                        .foregroundColor(palette.primaryText)
+                        .foregroundColor(AppColor.primaryText)
                 }
                 Spacer()
                 VStack(alignment: .leading) {
                     Text("收藏片單")
                         .font(.caption)
-                        .foregroundColor(palette.secondaryText)
+                        .foregroundColor(AppColor.secondaryText)
                     Text("128 部")
                         .font(.headline)
-                        .foregroundColor(palette.primaryText)
+                        .foregroundColor(AppColor.primaryText)
                 }
             }
         }
         .padding(20)
-        .background(palette.surface, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
-        .shadow(color: palette.shadow, radius: 12, x: 0, y: 6)
+        .background(AppColor.surface, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
+        .shadow(color: AppColor.shadow, radius: 12, x: 0, y: 6)
     }
     
     var appearanceSection: some View {
-        SettingSection(title: "外觀模式", palette: palette) {
+        SettingSection(title: "外觀模式") {
             VStack(alignment: .leading, spacing: 12) {
                 Text("選擇主題")
                     .font(.subheadline)
-                    .foregroundColor(palette.secondaryText)
+                    .foregroundColor(AppColor.secondaryText)
                 Picker("外觀模式", selection: $coordinator.theme) {
                     ForEach(AppTheme.allCases) { theme in
                         Text(theme.title).tag(theme)
@@ -114,32 +109,30 @@ private extension SettingPage {
                 .pickerStyle(.segmented)
                 Text(coordinator.theme.description)
                     .font(.caption)
-                    .foregroundColor(palette.tertiaryText)
+                    .foregroundColor(AppColor.tertiaryText)
             }
         }
     }
     
     var preferencesSection: some View {
-        SettingSection(title: "偏好設定", palette: palette) {
+        SettingSection(title: "偏好設定") {
             Toggle(isOn: $notificationsEnabled) {
                 SettingRow(
                     icon: "bell.fill",
                     title: "推播通知",
-                    subtitle: "掌握最新上映、片單更新",
-                    palette: palette
+                    subtitle: "掌握最新上映、片單更新"
                 )
             }
-            .tint(palette.accent)
+            .tint(AppColor.accent)
             
             Toggle(isOn: $autoplayTrailers) {
                 SettingRow(
                     icon: "play.rectangle.fill",
                     title: "自動播放預告",
-                    subtitle: "在海報上停留時自動播放",
-                    palette: palette
+                    subtitle: "在海報上停留時自動播放"
                 )
             }
-            .tint(palette.accent)
+            .tint(AppColor.accent)
             
             Picker(selection: $downloadQuality) {
                 ForEach(DownloadQuality.allCases) { option in
@@ -150,8 +143,7 @@ private extension SettingPage {
                 SettingRow(
                     icon: "arrow.down.circle.fill",
                     title: "下載品質",
-                    subtitle: downloadQuality.description,
-                    palette: palette
+                    subtitle: downloadQuality.description
                 )
             }
             .pickerStyle(.menu)
@@ -159,23 +151,21 @@ private extension SettingPage {
     }
     
     var streamingSection: some View {
-        SettingSection(title: "串流與網路", palette: palette) {
+        SettingSection(title: "串流與網路") {
             Toggle(isOn: $cellularStreaming) {
                 SettingRow(
                     icon: "antenna.radiowaves.left.and.right",
                     title: "允許行動網路串流",
-                    subtitle: "可能增加數據使用量",
-                    palette: palette
+                    subtitle: "可能增加數據使用量"
                 )
             }
-            .tint(palette.accent)
+            .tint(AppColor.accent)
             
             Button(action: {}) {
                 SettingRow(
                     icon: "icloud.and.arrow.down",
                     title: "清理暫存",
-                    subtitle: "釋放儲存空間",
-                    palette: palette
+                    subtitle: "釋放儲存空間"
                 )
             }
             .buttonStyle(.plain)
@@ -184,8 +174,7 @@ private extension SettingPage {
                 SettingRow(
                     icon: "arrow.2.squarepath",
                     title: "同步片單",
-                    subtitle: "立即刷新跨裝置片單",
-                    palette: palette
+                    subtitle: "立即刷新跨裝置片單"
                 )
             }
             .buttonStyle(.plain)
@@ -193,13 +182,12 @@ private extension SettingPage {
     }
     
     var aboutSection: some View {
-        SettingSection(title: "關於 MovieExplorer", palette: palette) {
+        SettingSection(title: "關於 MovieExplorer") {
             Button(action: {}) {
                 SettingRow(
                     icon: "sparkles",
                     title: "版本 1.0",
-                    subtitle: "最新功能與更新",
-                    palette: palette
+                    subtitle: "最新功能與更新"
                 )
             }
             .buttonStyle(.plain)
@@ -208,8 +196,7 @@ private extension SettingPage {
                 SettingRow(
                     icon: "shield.lefthalf.fill",
                     title: "隱私政策",
-                    subtitle: "瞭解我們如何保護您的資料",
-                    palette: palette
+                    subtitle: "瞭解我們如何保護您的資料"
                 )
             }
             .buttonStyle(.plain)
@@ -218,12 +205,10 @@ private extension SettingPage {
     
     struct SettingSection<Content: View>: View {
         let title: String
-        let palette: AppColor.Palette
         private let content: () -> Content
         
-        init(title: String, palette: AppColor.Palette, @ViewBuilder content: @escaping () -> Content) {
+        init(title: String, @ViewBuilder content: @escaping () -> Content) {
             self.title = title
-            self.palette = palette
             self.content = content
         }
         
@@ -231,7 +216,7 @@ private extension SettingPage {
             VStack(alignment: .leading, spacing: 16) {
                 Text(title)
                     .font(.headline)
-                    .foregroundColor(palette.primaryText)
+                    .foregroundColor(AppColor.primaryText)
                 VStack(alignment: .leading, spacing: 12) {
                     content()
                 }
@@ -239,13 +224,13 @@ private extension SettingPage {
                 .padding(.horizontal, 16)
                 .background(
                     RoundedRectangle(cornerRadius: 20, style: .continuous)
-                        .fill(palette.surface)
+                        .fill(AppColor.surface)
                 )
                 .overlay(
                     RoundedRectangle(cornerRadius: 20, style: .continuous)
-                        .stroke(palette.cardStroke, lineWidth: 1)
+                        .stroke(AppColor.cardStroke, lineWidth: 1)
                 )
-                .shadow(color: palette.shadow.opacity(0.7), radius: 10, x: 0, y: 4)
+                .shadow(color: AppColor.shadow.opacity(0.7), radius: 10, x: 0, y: 4)
             }
         }
     }
@@ -254,22 +239,21 @@ private extension SettingPage {
         let icon: String
         let title: String
         let subtitle: String
-        let palette: AppColor.Palette
         
         var body: some View {
             HStack(spacing: 16) {
                 Image(systemName: icon)
                     .font(.title3.weight(.semibold))
                     .frame(width: 36, height: 36)
-                    .foregroundColor(palette.accent)
-                    .background(palette.badgeBackground, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    .foregroundColor(AppColor.accent)
+                    .background(AppColor.badgeBackground, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
                 VStack(alignment: .leading, spacing: 4) {
                     Text(title)
                         .font(.body.weight(.semibold))
-                        .foregroundColor(palette.primaryText)
+                        .foregroundColor(AppColor.primaryText)
                     Text(subtitle)
                         .font(.caption)
-                        .foregroundColor(palette.secondaryText)
+                        .foregroundColor(AppColor.secondaryText)
                 }
                 Spacer()
             }

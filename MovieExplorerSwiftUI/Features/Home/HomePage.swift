@@ -10,7 +10,6 @@ import SwiftUI
 struct HomePage: View {
     
     @EnvironmentObject var coordinator: AppCoordinator
-    @Environment(\.colorScheme) private var colorScheme
     @StateObject var viewModel = HomePageViewModel()
     
     init(viewModel: HomePageViewModel = HomePageViewModel()) {
@@ -45,23 +44,22 @@ struct HomePage: View {
                             }
                             
                             LinearGradient(
-                                colors: [palette.overlayStart, palette.overlayEnd],
+                                colors: [AppColor.overlayStart, AppColor.overlayEnd],
                                 startPoint: .bottom,
                                 endPoint: .top
                             )
                             .frame(height: 140)
                             .frame(maxWidth: .infinity, alignment: .bottom)
                             .allowsHitTesting(false)
-                            
                             Text(String(format: "⭐️  %.1f", item.voteAverage))
                                 .font(.subheadline.weight(.bold))
-                                .foregroundColor(palette.primaryText)
+                                .foregroundColor(AppColor.primaryText)
                                 .padding(6)
                                 .glassEffect()
                                 .padding()
                         }
                         .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-                        .shadow(color: palette.shadow, radius: 8, x: 0, y: 8)
+                        .shadow(color: AppColor.shadow, radius: 8, x: 0, y: 8)
                         .onTapGesture {
                             coordinator.push(.movieDetail(id: item.id))
                         }
@@ -98,7 +96,7 @@ struct HomePage: View {
     
     private func sectionHeader(section: HomePageViewModel.Section) -> some View {
         Text(section.title)
-            .foregroundColor(palette.primaryText)
+            .foregroundColor(AppColor.primaryText)
             .font(.title.weight(.bold))
             .padding(.horizontal, 16)
     }
@@ -118,12 +116,12 @@ struct HomePage: View {
                             .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
                             .overlay(
                                 RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                    .stroke(palette.cardStroke)
+                                    .stroke(AppColor.cardStroke)
                             )
                         VStack(alignment: .leading, spacing: 4) {
                             Text(String(format: "人氣：%.0f", movie.popularity))
                                 .font(.subheadline.weight(.bold))
-                                .foregroundColor(palette.secondaryText)
+                                .foregroundColor(AppColor.secondaryText)
                         }
                     }
                     .padding(.bottom, 4)
@@ -155,7 +153,7 @@ struct HomePage: View {
                             }
                         Text("票房熱度: \(Int(movie.popularity))")
                             .font(.subheadline.weight(.bold))
-                            .foregroundColor(palette.secondaryText)
+                            .foregroundColor(AppColor.secondaryText)
                     }
                     .onTapGesture {
                         coordinator.push(.movieDetail(id: movie.id))
@@ -188,10 +186,10 @@ struct HomePage: View {
                             Spacer()
                             Label("加入片單提醒", systemImage: "bell")
                                 .font(.caption.weight(.bold))
-                                .foregroundColor(palette.primaryText)
+                                .foregroundColor(AppColor.primaryText)
                                 .padding(.vertical, 6)
                                 .padding(.horizontal, 12)
-                                .background(palette.badgeBackground, in: Capsule())
+                                .background(AppColor.badgeBackground, in: Capsule())
                             Spacer()
                         }
                         
@@ -222,12 +220,12 @@ struct HomePage: View {
                             .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
                             .overlay(
                                 RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                    .stroke(palette.cardStroke)
+                                    .stroke(AppColor.cardStroke)
                             )
                         VStack(alignment: .leading, spacing: 4) {
                             Text(String(format: "⭐️ %.1f", movie.voteAverage))
                                 .font(.subheadline.bold())
-                                .foregroundColor(palette.secondaryText)
+                                .foregroundColor(AppColor.secondaryText)
                         }
                     }
                     .frame(width: cardWidth)
@@ -286,9 +284,6 @@ struct HomePage: View {
 }
 
 private extension HomePage {
-    var palette: AppColor.Palette {
-        AppColor.palette(for: colorScheme)
-    }
 }
 
 #Preview {

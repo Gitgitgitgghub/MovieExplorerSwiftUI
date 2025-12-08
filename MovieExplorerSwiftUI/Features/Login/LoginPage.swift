@@ -10,7 +10,6 @@ import SwiftUI
 struct LoginPage: View {
     
     @EnvironmentObject private var coordinator: AppCoordinator
-    @Environment(\.colorScheme) private var colorScheme
     @StateObject private var viewModel: LoginPageViewModel
     
     init(viewModel: LoginPageViewModel = LoginPageViewModel()) {
@@ -22,21 +21,21 @@ struct LoginPage: View {
             Text("Welcome back")
                 .font(.title)
                 .bold()
-                .foregroundColor(palette.mutedText)
+                .foregroundColor(AppColor.mutedText)
             TextField(text: $viewModel.email) {
                 Text("Email")
-                    .foregroundColor(palette.mutedText)
+                    .foregroundColor(AppColor.mutedText)
             }
             .padding()
-            .background(palette.surface)
+            .background(AppColor.surface)
             .cornerRadius(10)
             .padding(.horizontal, 16)
             SecureField(text: $viewModel.password) {
                 Text("Password")
-                    .foregroundColor(palette.mutedText)
+                    .foregroundColor(AppColor.mutedText)
             }
             .padding()
-            .background(palette.surface)
+            .background(AppColor.surface)
             .cornerRadius(10)
             .padding(.horizontal, 16)
             Button(action: {
@@ -47,7 +46,7 @@ struct LoginPage: View {
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
                     .padding()
-                    .background(palette.accent)
+                    .background(AppColor.accent)
                     .clipShape(.capsule)
             }
             .padding(.init(top: 32, leading: 16, bottom: 0, trailing: 16))
@@ -83,23 +82,17 @@ struct LoginPage: View {
         HStack {
             Rectangle()
                 .frame(maxWidth: .infinity, maxHeight: 1)
-                .foregroundColor(palette.mutedText)
+                .foregroundColor(AppColor.mutedText)
             Text("Or continue with")
-                .foregroundColor(palette.mutedText)
+                .foregroundColor(AppColor.mutedText)
                 .lineLimit(1)
                 .padding(8)
                 .layoutPriority(1)
             Rectangle()
                 .frame(maxWidth: .infinity, maxHeight: 1)
-                .foregroundColor(palette.mutedText)
+                .foregroundColor(AppColor.mutedText)
         }
         .padding(.horizontal, 16)
-    }
-}
-
-private extension LoginPage {
-    var palette: AppColor.Palette {
-        AppColor.palette(for: colorScheme)
     }
 }
 #Preview {
