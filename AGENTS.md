@@ -17,3 +17,6 @@ MovieExplorerSwiftUI 採用功能優先的檔案結構。App 進入點、協調�
 
 ## 安全與設定提醒
 請勿將真實 TMDB API 金鑰提交到版本庫；將其保存於 `APIKey.json` 或安全的環境變數。新增 API endpoint 時需更新 `TMDBConfig`、提供 mock payload，並記錄必要參數。Commit 前檢查 log 與除錯輸出，確保不會洩露憑證或使用者資料。
+
+## 溝通與協作
+1. 全程使用繁體中文

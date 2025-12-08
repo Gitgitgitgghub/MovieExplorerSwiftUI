@@ -18,71 +18,86 @@ struct HomePage: View {
     
     var body: some View {
         NavigationStack(path: $coordinator.homePath) {
-            ScrollView {
-                LazyVStack(alignment: .leading, spacing: 24) {
-                    BannerCarousel(
-                        items: $viewModel.trending,
-                        spacing: 16,
-                        cardWidth: 300,
-                        cardHeight: 450,
-                        swipeThresholdRatio: 0.25
-                    ) { item in
-                        ZStack(alignment: .bottomTrailing) {
-                            AsyncImage(url: item.posterURL) { phase in
-                                switch phase {
-                                case .success(let image):
-                                    image
-                                        .resizable()
-                                        .scaledToFill()
-                                case .failure:
-                                    Color.gray.opacity(0.3)
-                                case .empty:
-                                    Color.gray.opacity(0.15)
-                                @unknown default:
-                                    Color.gray.opacity(0.15)
+            ZStack {
+                ScrollView {
+                    LazyVStack(alignment: .leading, spacing: 24) {
+                        BannerCarousel(
+                            items: $viewModel.trending,
+                            spacing: 16,
+                            cardWidth: 300,
+                            cardHeight: 450,
+                            swipeThresholdRatio: 0.25
+                        ) { item in
+                            ZStack(alignment: .bottomTrailing) {
+                                AsyncImage(url: item.posterURL) { phase in
+                                    switch phase {
+                                    case .success(let image):
+                                        image
+                                            .resizable()
+                                            .scaledToFill()
+                                    case .failure:
+                                        Color.gray.opacity(0.3)
+                                    case .empty:
+                                        Color.gray.opacity(0.15)
+                                    @unknown default:
+                                        Color.gray.opacity(0.15)
+                                    }
                                 }
+                                
+                                LinearGradient(
+                                    colors: [AppColor.overlayStart, AppColor.overlayEnd],
+                                    startPoint: .bottom,
+                                    endPoint: .top
+                                )
+                                .frame(height: 140)
+                                .frame(maxWidth: .infinity, alignment: .bottom)
+                                .allowsHitTesting(false)
+                                Text(String(format: "⭐️  %.1f", item.voteAverage))
+                                    .font(.subheadline.weight(.bold))
+                                    .foregroundColor(AppColor.primaryText)
+                                    .padding(6)
+                                    .glassEffect()
+                                    .padding()
                             }
-                            
-                            LinearGradient(
-                                colors: [AppColor.overlayStart, AppColor.overlayEnd],
-                                startPoint: .bottom,
-                                endPoint: .top
-                            )
-                            .frame(height: 140)
-                            .frame(maxWidth: .infinity, alignment: .bottom)
-                            .allowsHitTesting(false)
-                            Text(String(format: "⭐️  %.1f", item.voteAverage))
-                                .font(.subheadline.weight(.bold))
-                                .foregroundColor(AppColor.primaryText)
-                                .padding(6)
-                                .glassEffect()
-                                .padding()
+                            .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+                            .shadow(color: AppColor.shadow, radius: 8, x: 0, y: 8)
+                            .onTapGesture {
+                                coordinator.push(.movieDetail(id: item.id))
+                            }
                         }
-                        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-                        .shadow(color: AppColor.shadow, radius: 8, x: 0, y: 8)
-                        .onTapGesture {
-                            coordinator.push(.movieDetail(id: item.id))
-                        }
+                        sectionHeader(section: .popular)
+                        popularMovieRow(
+                            movies: viewModel.popular,
+                            cardWidth: 200,
+                            cardHeight: 300
+                        )
+                        
+                        sectionHeader(section: .nowPlaying)
+                        nowPlayingRow()
+                        
+                        sectionHeader(section: .topRated)
+                        topRatedMovieRow(
+                            movies: viewModel.topRated,
+                            cardWidth: 160,
+                            cardHeight: 250
+                        )
+                        
+                        sectionHeader(section: .upcoming)
+                        upcomingRow()
                     }
-                    sectionHeader(section: .popular)
-                    popularMovieRow(
-                        movies: viewModel.popular,
-                        cardWidth: 200,
-                        cardHeight: 300
+                }
+                .opacity(viewModel.isLoading ? 0 : 1)
+                .disabled(viewModel.isLoading)
+                .animation(.easeInOut(duration: 0.25), value: viewModel.isLoading)
+                
+                if viewModel.isLoading {
+                    CinematicLoadingView(
+                        title: "正在載入片單",
+                        subtitle: "同步趨勢、票房與演員陣容，馬上就好"
                     )
-                    
-                    sectionHeader(section: .nowPlaying)
-                    nowPlayingRow()
-                    
-                    sectionHeader(section: .topRated)
-                    topRatedMovieRow(
-                        movies: viewModel.topRated,
-                        cardWidth: 160,
-                        cardHeight: 250
-                    )
-                    
-                    sectionHeader(section: .upcoming)
-                    upcomingRow()
+                    .padding(.horizontal, 24)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .transition(.opacity)
                 }
             }
             .navigationDestination(for: AppRoute.self) { route in

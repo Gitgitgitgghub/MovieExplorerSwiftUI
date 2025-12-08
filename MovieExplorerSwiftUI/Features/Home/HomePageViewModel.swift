@@ -17,6 +17,7 @@ class HomePageViewModel: ObservableObject {
     @Published var nowPlaying: [Movie] = []
     @Published var upcoming: [Movie] = []
     @Published var sections: [Section] = [.trending, .popular, .nowPlaying, .topRated, .upcoming]
+    @Published var isLoading: Bool = false
     
     private let service: TMDBServiceProtocol
     
@@ -25,6 +26,10 @@ class HomePageViewModel: ObservableObject {
     }
     
     func load() async {
+        guard !isLoading else { return }
+        isLoading = true
+        defer { isLoading = false }
+        
         do {
             async let t = service.request(TrendingMovies())
             async let p = service.request(PopularMovies())
