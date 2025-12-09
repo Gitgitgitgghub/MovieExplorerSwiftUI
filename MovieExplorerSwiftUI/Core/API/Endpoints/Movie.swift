@@ -8,7 +8,7 @@
 import Foundation
 
 struct MovieDetails: TMDBEndpointProtocol {
-    typealias Response = MovieResponse
+    typealias Response = MovieDetailResponse
 
     let movieID: Int
     var path: String { "/movie/\(movieID)" }

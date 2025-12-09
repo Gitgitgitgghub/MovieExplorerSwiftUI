@@ -43,6 +43,18 @@ final class TMDBAPITests: XCTestCase {
         print("Trending first movie:", response.results.first?.title ?? "N/A")
     }
 
+    func testMovieDetailsAPI_ReturnsDetail() async throws {
+        let service = TMDBService()
+
+        let response: MovieDetailResponse = try await service.request(MovieDetails(movieID: 1084242))
+
+        XCTAssertEqual(response.id, 1084242, "Should load requested movie ID")
+        XCTAssertFalse(response.title.isEmpty, "Movie title should not be empty")
+        XCTAssertNotNil(response.releaseDate, "Movie details should include release date")
+
+        print("Movie details title:", response.title)
+    }
+
     func testNowPlayingMoviesAPI_ReturnsResults() async throws {
         let service = TMDBService()
 
