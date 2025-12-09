@@ -10,14 +10,10 @@ import Foundation
 @MainActor
 class HomePageViewModel: ObservableObject {
     
+    
     //MARK: - Published Properties
-    @Published var trending: [Movie] = []
-    @Published var popular: [Movie] = []
-    @Published var topRated: [Movie] = []
-    @Published var nowPlaying: [Movie] = []
-    @Published var upcoming: [Movie] = []
-    @Published var sections: [Section] = [.trending, .popular, .nowPlaying, .topRated, .upcoming]
-    @Published var isLoading: Bool = false
+    @Published var sections: [Section] = []
+    @Published var loadingStatus: LoadingStatus = .idle
     
     private let service: TMDBServiceProtocol
     
@@ -26,10 +22,7 @@ class HomePageViewModel: ObservableObject {
     }
     
     func load() async {
-        guard !isLoading else { return }
-        isLoading = true
-        defer { isLoading = false }
-        
+        loadingStatus = .loading
         do {
             async let t = service.request(TrendingMovies())
             async let p = service.request(PopularMovies())
@@ -42,25 +35,82 @@ class HomePageViewModel: ObservableObject {
                  topRatedResponse,
                  nowPlayingResponse,
                  upcomingResponse) = try await (t, p, r, n, u)
-            
-            trending = trendingResponse.results
-            popular = popularResponse.results
-            topRated = topRatedResponse.results
-            nowPlaying = nowPlayingResponse.results
-            upcoming = upcomingResponse.results
+
+            sections = buildSections(
+                trendingResponse: trendingResponse,
+                popularResponse: popularResponse,
+                topRatedResponse: topRatedResponse,
+                nowPlayingResponse: nowPlayingResponse,
+                upcomingResponse: upcomingResponse
+            )
+
+            loadingStatus = .loaded
         } catch {
-            
+            sections = []
+            loadingStatus = .failed(message: error.localizedDescription)
         }
         
+    }
+
+    private func buildSections(
+        trendingResponse: MovieResponse,
+        popularResponse: MovieResponse,
+        topRatedResponse: MovieResponse,
+        nowPlayingResponse: MovieResponse,
+        upcomingResponse: MovieResponse
+    ) -> [Section] {
+        var sections: [Section] = []
+
+        if !trendingResponse.results.isEmpty {
+            sections.append(.trending(data: trendingResponse))
+        }
+
+        if !popularResponse.results.isEmpty {
+            sections.append(.popular(data: popularResponse))
+        }
+
+        if !topRatedResponse.results.isEmpty {
+            sections.append(.topRated(data: topRatedResponse))
+        }
+
+        if !nowPlayingResponse.results.isEmpty {
+            sections.append(.nowPlaying(data: nowPlayingResponse))
+        }
+
+        if !upcomingResponse.results.isEmpty {
+            sections.append(.upcoming(data: upcomingResponse))
+        }
+
+        return sections
+    }
+
+    //MARK: - Loading Status
+    enum LoadingStatus: Equatable {
+        case idle
+        case loading
+        case loaded
+        case failed(message: String)
+        
+        var isLoading: Bool { self == .loading }
     }
     
     //MARK: Section
     enum Section {
-        case trending
-        case popular
-        case topRated
-        case nowPlaying
-        case upcoming
+        case trending(data: MovieResponse)
+        case popular(data: MovieResponse)
+        case topRated(data: MovieResponse)
+        case nowPlaying(data: MovieResponse)
+        case upcoming(data: MovieResponse)
+
+        var id: String {
+            switch self {
+            case .trending: return "trending"
+            case .popular: return "popular"
+            case .topRated: return "topRated"
+            case .nowPlaying: return "nowPlaying"
+            case .upcoming: return "upcoming"
+            }
+        }
         
         var title: String {
             switch self {

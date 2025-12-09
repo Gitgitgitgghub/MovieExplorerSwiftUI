@@ -112,6 +112,23 @@ extension Movie {
         guard voteAverage != 0 else { return "-" }
         return String(format: "%.1f", voteAverage)
     }
+
+    func formattedReleaseDate(fallback: String = "日期待定") -> String {
+        guard let releaseDate, !releaseDate.isEmpty else { return fallback }
+        let parser = DateFormatter.make(
+            format: "yyyy-MM-dd",
+            locale: Locale(identifier: "en_US_POSIX")
+        )
+        if let date = parser.date(from: releaseDate) {
+            return Self.releaseDateDisplayFormatter.string(from: date)
+        }
+        return releaseDate
+    }
+
+    private static let releaseDateDisplayFormatter: DateFormatter = .make(
+        format: "M月d日",
+        locale: Locale(identifier: "zh_TW")
+    )
 }
 
 //MARK: - Mock Data for Preview
