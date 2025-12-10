@@ -103,6 +103,15 @@ final class AppCoordinator: ObservableObject {
             WatchlistPage()
         }
     }
+    
+    func currentPath() -> NavigationPath {
+        switch currentTab {
+        case .home: homePath
+        case .search: searchPath
+        case .watchlist: watchlistPath
+        case .settings: settingsPath
+        }
+    }
 }
 
 enum AppTheme: String, CaseIterable, Identifiable {

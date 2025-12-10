@@ -43,3 +43,37 @@ extension Cast {
         character ?? ""
     }
 }
+
+// MARK: - Mock
+extension CreditsResponse: Mockable {
+    static var mockJson: String {
+        """
+        {
+          "id": 1084242,
+          "cast": [
+            {
+              "id": 2037,
+              "name": "Ginnifer Goodwin",
+              "character": "Judy Hopps (voice)",
+              "profile_path": "/aFF1ZZWHgmN4LCxfv7K5s8ygf2A.jpg",
+              "order": 0
+            },
+            {
+              "id": 134937,
+              "name": "Jason Bateman",
+              "character": "Nick Wilde (voice)",
+              "profile_path": "/5jXb3MEHj7QqXVHJPxmgix0CUXV.jpg",
+              "order": 1
+            },
+            {
+              "id": 4785,
+              "name": "Idris Elba",
+              "character": "Chief Bogo (voice)",
+              "profile_path": "/yXsqMeLZzgZvaeV1lI3pXAz3H3w.jpg",
+              "order": 2
+            }
+          ]
+        }
+        """
+    }
+}

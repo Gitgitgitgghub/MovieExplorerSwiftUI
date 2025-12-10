@@ -8,6 +8,7 @@
 import SwiftUI
 
 enum AppGradients {
+    /// 根據當前色彩方案返回對應的電影感背景。
     static func background(for colorScheme: ColorScheme) -> LinearGradient {
         switch colorScheme {
         case .dark:
