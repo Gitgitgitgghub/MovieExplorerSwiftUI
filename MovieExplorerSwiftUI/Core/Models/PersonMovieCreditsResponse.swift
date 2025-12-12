@@ -13,7 +13,7 @@ struct PersonMovieCreditsResponse: Decodable {
     let crew: [PersonMovieCrew]
 }
 
-struct PersonMovieCast: Codable, Identifiable, Hashable {
+struct PersonMovieCast: Codable, Identifiable {
     let adult: Bool
     let backdropPath: String?
     let character: String?
@@ -55,7 +55,7 @@ struct PersonMovieCast: Codable, Identifiable, Hashable {
     }
 }
 
-struct PersonMovieCrew: Codable, Identifiable, Hashable {
+struct PersonMovieCrew: Codable, Identifiable {
     let adult: Bool
     let backdropPath: String?
     let creditID: String
