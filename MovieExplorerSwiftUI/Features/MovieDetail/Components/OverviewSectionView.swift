@@ -17,14 +17,16 @@ extension MovieDetailPage {
             VStack(alignment: .leading, spacing: 12) {
                 HStack(alignment: .center) {
                     Text(detail.title)
-                        .font(.system(size: 32, weight: .bold, design: .rounded))
+                        .minimumScaleFactor(0.7)
+                        .lineLimit(2)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .font(.system(size: 24, weight: .bold, design: .rounded))
                         .foregroundColor(AppColor.primaryText)
-                        
+                    Spacer(minLength: 0)
                     Image(systemName: "chevron.down")
                         .font(.system(size: 22, weight: .semibold))
                         .foregroundColor(AppColor.secondaryText)
                         .rotationEffect(.degrees(isOverviewExpanded ? 180 : 0))
-                    Spacer()
                 }
                 .onTapGesture {
                     withAnimation(.spring(response: 0.35, dampingFraction: 0.82)) {
@@ -60,5 +62,4 @@ extension MovieDetailPage {
 #Preview {
     MovieDetailPage.OverviewSectionView(detail: MovieDetailResponse.mock!)
 }
-
 

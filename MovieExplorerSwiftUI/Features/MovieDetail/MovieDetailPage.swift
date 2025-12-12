@@ -49,6 +49,7 @@ struct MovieDetailPage: View {
                     }
                 }
                 .padding(.bottom, 28)
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
         }
         .scrollIndicators(.hidden)
@@ -109,11 +110,13 @@ struct MovieDetailPage: View {
     }
 
     // MARK: - Sections
+    @ViewBuilder
     private func heroSection(detail: MovieDetailResponse) -> some View {
         PosterCard(url: detail.backdropURL ?? detail.posterURL)
-        .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
-        .padding(.horizontal, 16)
-        .shadow(color: AppColor.shadow.opacity(0.35), radius: 16, x: 0, y: 12)
+            .aspectRatio(16 / 9, contentMode: .fit)
+            .frame(maxWidth: .infinity)
+            .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
+            .padding(.horizontal, 8)
     }
     
 }
