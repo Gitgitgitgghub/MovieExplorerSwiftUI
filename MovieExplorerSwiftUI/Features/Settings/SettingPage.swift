@@ -292,5 +292,5 @@ private enum DownloadQuality: String, CaseIterable, Identifiable {
     NavigationStack {
         SettingPage()
     }
-    .environmentObject(AppCoordinator())
+    .environmentObject(AppCoordinator(authStore: .init()))
 }

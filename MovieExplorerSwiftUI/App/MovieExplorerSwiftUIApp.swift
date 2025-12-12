@@ -10,20 +10,33 @@ import SwiftUI
 @main
 struct MovieExplorerSwiftUIApp: App {
 
-    @StateObject private var coordinator = AppCoordinator()
+    @StateObject private var authStore = AuthStore()
+    @StateObject private var coordinator: AppCoordinator
+
+    init() {
+        let store = AuthStore()
+        _authStore = StateObject(wrappedValue: store)
+        _coordinator = StateObject(wrappedValue: AppCoordinator(authStore: store))
+    }
 
     var body: some Scene {
         WindowGroup {
             Group {
-                if coordinator.isAuthenticated {
+                if authStore.isAuthenticated {
                     MainTabPage()
                 } else {
                     LoginPage()
                 }
             }
             .environmentObject(coordinator)
+            .environmentObject(authStore)
             .preferredColorScheme(coordinator.theme.colorScheme)
-            .animation(.easeInOut, value: coordinator.isAuthenticated)
+            .animation(.easeInOut, value: authStore.isAuthenticated)
+            .onOpenURL { url in
+                Task {
+                    await coordinator.handleAuthCallback(url: url)
+                }
+            }
         }
     }
 }

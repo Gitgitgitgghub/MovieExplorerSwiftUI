@@ -291,5 +291,4 @@ private enum Layout {
 
 #Preview {
     HomePage(viewModel: HomePageViewModel(service: FakeTMDBService()))
-        .environmentObject(AppCoordinator())
 }

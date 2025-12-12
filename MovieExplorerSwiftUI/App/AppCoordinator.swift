@@ -26,9 +26,16 @@ enum AppRoute: Hashable {
 
 final class AppCoordinator: ObservableObject {
 
-    @Published var isAuthenticated: Bool = false
     @Published var currentTab: AppTab = .home
     @Published var theme: AppTheme = .system
+    
+    let authStore: AuthStore
+    private let authService: AuthService
+
+    init(authStore: AuthStore, authService: AuthService = AuthService()) {
+        self.authStore = authStore
+        self.authService = authService
+    }
 
     // MARK: - Navigation Paths (One per tab)
     @Published var homePath = NavigationPath()
@@ -110,6 +117,23 @@ final class AppCoordinator: ObservableObject {
         case .search: searchPath
         case .watchlist: watchlistPath
         case .settings: settingsPath
+        }
+    }
+
+    /// 處理 TMDB 授權回呼，交換 request token 為 session 並更新登入狀態
+    @MainActor
+    func handleAuthCallback(url: URL) async {
+        guard let payload = authService.parseCallback(url: url) else { return }
+        guard payload.approved else {
+            authStore.setError("授權未通過，請重試")
+            return
+        }
+        do {
+            let result = try await authService.exchangeSession(requestToken: payload.requestToken)
+            authStore.update(authResult: result)
+            currentTab = .home
+        } catch {
+            authStore.setError("交換 session 失敗：\(error.localizedDescription)")
         }
     }
 }

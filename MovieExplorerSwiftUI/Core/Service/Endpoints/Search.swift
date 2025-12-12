@@ -1,5 +1,5 @@
 //
-//  Serach.swift
+//  Search.swift
 //  MovieExplorerSwiftUI
 //
 //  Created by Brant on 2025/11/28.
