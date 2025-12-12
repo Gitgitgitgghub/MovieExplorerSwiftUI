@@ -1,0 +1,4 @@
+{
+  "apiKey": "YOUR_TMDB_V3_API_KEY",
+  "accessToken": "YOUR_TMDB_V4_ACCESS_TOKEN_OPTIONAL"
+}
