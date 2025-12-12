@@ -23,6 +23,14 @@ struct MovieCredits: TMDBEndpointProtocol {
     var queryItems: [URLQueryItem] { [] }
 }
 
+struct MovieVideos: TMDBEndpointProtocol {
+    typealias Response = MovieVideosResponse
+
+    let movieID: Int
+    var path: String { "/movie/\(movieID)/videos" }
+    var queryItems: [URLQueryItem] { [] }
+}
+
 struct TrendingMovies: TMDBEndpointProtocol {
     
     typealias Response = MovieResponse

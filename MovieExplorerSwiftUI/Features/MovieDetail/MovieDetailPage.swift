@@ -25,11 +25,14 @@ struct MovieDetailPage: View {
         }
     }
     @EnvironmentObject private var coordinator: AppCoordinator
+    @Environment(\.openURL) private var openURL
     var movieID: Int
     var service: TMDBServiceProtocol
-    @State var detail: MovieDetailResponse?
-    @State var credits: CreditsResponse?
-    @State var loadingState: LoadingState = .idle
+    @State private var detail: MovieDetailResponse?
+    @State private var credits: CreditsResponse?
+    @State private var videos: MovieVideosResponse?
+    @State private var loadingState: LoadingState = .idle
+    @State private var isTrailerPulse = false
     
     init(movieID: Int, service: TMDBServiceProtocol = TMDBService()) {
         self.movieID = movieID
@@ -116,6 +119,25 @@ struct MovieDetailPage: View {
             .aspectRatio(16 / 9, contentMode: .fit)
             .frame(maxWidth: .infinity)
             .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
+            .overlay(alignment: .bottomTrailing) {
+                if let trailerURL {
+                    Button {
+                        openURL(trailerURL)
+                    } label: {
+                        Label("預告片", systemImage: "play.circle.fill")
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundColor(AppColor.primaryText)
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 10)
+                            .glassEffect()
+                            .shadow(color: AppColor.shadow.opacity(0.25), radius: isTrailerPulse ? 14 : 8, x: 0, y: 6)
+                    }
+                    .scaleEffect(isTrailerPulse ? 1.05 : 1)
+                    .animation(.easeInOut(duration: 1.3).repeatForever(autoreverses: true), value: isTrailerPulse)
+                    .onAppear { isTrailerPulse = true }
+                    .padding(12)
+                }
+            }
             .padding(.horizontal, 8)
     }
     
@@ -124,14 +146,20 @@ struct MovieDetailPage: View {
 // MARK: - MovieDetailPage 主要方法區
 extension MovieDetailPage {
     
+    private var trailerURL: URL? {
+        videos?.preferredTrailer?.youtubeURL
+    }
+    
     func load() async {
         loadingState = .loading
         do {
             async let detail = service.request(MovieDetails(movieID: movieID))
             async let credits = service.request(MovieCredits(movieID: movieID))
-            let (detailResponse, creditsResponse) = try await (detail, credits)
+            async let videos = service.request(MovieVideos(movieID: movieID))
+            let (detailResponse, creditsResponse, videosResponse) = try await (detail, credits, videos)
             self.detail = detailResponse
             self.credits = creditsResponse
+            self.videos = videosResponse
             loadingState = .loaded
         } catch {
             loadingState = .failed(message: error.localizedDescription)

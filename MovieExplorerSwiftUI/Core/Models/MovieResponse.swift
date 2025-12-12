@@ -8,6 +8,7 @@
 import Foundation
 
 
+/// TMDB 分頁電影清單回應（含當前頁、總頁數與電影陣列）
 struct MovieResponse: Codable {
     let page: Int
     let results: [Movie]
@@ -21,6 +22,7 @@ struct MovieResponse: Codable {
 }
 
 // MARK: - Result
+/// TMDB 電影清單項目，支援 Identifiable 方便 SwiftUI 使用
 struct Movie: Codable, Identifiable {
     let adult: Bool
     let backdropPath: String?
@@ -54,14 +56,20 @@ struct Movie: Codable, Identifiable {
     }
 }
 
+/// 媒體型別，目前僅支援電影
 enum MediaType: String, Codable {
     case movie = "movie"
 }
 
+/// 原文語系，保留未知語系字串以避免解碼失敗
 enum OriginalLanguage: Codable, Equatable {
+    /// 英文（en）
     case en
+    /// 法文（fr）
     case fr
+    /// 中文（zh）
     case zh
+    /// 其他語系代碼
     case other(String)
 
     private var value: String {
@@ -93,26 +101,31 @@ enum OriginalLanguage: Codable, Equatable {
 // MARK: - 方便 UI 用的 computed properties
 extension Movie {
 
+    /// 海報完整 URL（若無海報則為 nil）
     var posterURL: URL? {
         guard let posterPath, !posterPath.isEmpty else { return nil }
         return URL(string: TMDBConfig.posterBaseURL + posterPath)
     }
 
+    /// 橫幅完整 URL（若無橫幅則為 nil）
     var backdropURL: URL? {
         guard let backdropPath, !backdropPath.isEmpty else { return nil }
         return URL(string: TMDBConfig.backdropBaseURL + backdropPath)
     }
 
+    /// 取上映年份（無日期則回傳空字串）
     var yearText: String {
         guard let releaseDate, releaseDate.count >= 4 else { return "" }
         return String(releaseDate.prefix(4))
     }
 
+    /// 評分文字，若無評分則顯示 "-"
     var ratingText: String {
         guard voteAverage != 0 else { return "-" }
         return String(format: "%.1f", voteAverage)
     }
 
+    /// 將 `release_date` 轉為在地化顯示（預設 yyyy-MM-dd → M月d日），若無資料則回傳 fallback
     func formattedReleaseDate(fallback: String = "日期待定") -> String {
         guard let releaseDate, !releaseDate.isEmpty else { return fallback }
         let parser = DateFormatter.make(
