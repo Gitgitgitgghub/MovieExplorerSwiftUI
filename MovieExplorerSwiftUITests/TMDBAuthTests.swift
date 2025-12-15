@@ -53,6 +53,15 @@ final class TMDBAuthTests: XCTestCase {
         XCTAssertTrue(endpoints[2] is CreateSession)
     }
 
+    func testGuestSessionResponse_DecodesSuccessfully() throws {
+        let data = try XCTUnwrap(GuestSessionResponse.mockJson.data(using: .utf8))
+        let decoded = try JSONDecoder().decode(GuestSessionResponse.self, from: data)
+
+        XCTAssertTrue(decoded.success)
+        XCTAssertEqual(decoded.guestSessionID, "mock_guest_session_id")
+        XCTAssertEqual(decoded.expiresAt, "2025-12-31 23:59:59 UTC")
+    }
+
     @MainActor
     func testAuthStoreLoginWithCredentials_UpdatesIdentity() async {
         let spy = SpyTMDBService()
@@ -65,6 +74,37 @@ final class TMDBAuthTests: XCTestCase {
             XCTAssertEqual(sessionID, "session_abc")
         } else {
             XCTFail("期望登入後 identity 為 loggedIn")
+        }
+        XCTAssertNil(store.authErrorMessage)
+    }
+
+    func testAuthServiceCreateGuestSession_ReturnsGuestSessionIDAndExpiresAt() async throws {
+        let spy = SpyTMDBService()
+        let authService = AuthService(service: spy)
+
+        let result = try await authService.createGuestSession()
+
+        XCTAssertEqual(result.sessionID, "guest_abc")
+        XCTAssertNotNil(result.expiresAt)
+
+        let endpoints = await spy.requestedEndpoints
+        XCTAssertEqual(endpoints.count, 1)
+        XCTAssertTrue(endpoints[0] is CreateGuestSession)
+    }
+
+    @MainActor
+    func testAuthStoreLoginAsGuest_UpdatesIdentity() async {
+        let spy = SpyTMDBService()
+        let authService = AuthService(service: spy)
+        let store = AuthStore(authService: authService)
+
+        await store.loginAsGuest()
+
+        if case .guest(let guestSessionID, let expiresAt) = store.identity {
+            XCTAssertEqual(guestSessionID, "guest_abc")
+            XCTAssertNotNil(expiresAt)
+        } else {
+            XCTFail("期望訪客登入後 identity 為 guest")
         }
         XCTAssertNil(store.authErrorMessage)
     }
@@ -118,6 +158,14 @@ actor SpyTMDBService: TMDBServiceProtocol {
         if let create = endpoint as? CreateSession {
             XCTAssertEqual(create.requestToken, "token_validated")
             return CreateSessionResponse(success: true, sessionID: "session_abc") as! E.Response
+        }
+
+        if endpoint is CreateGuestSession {
+            return GuestSessionResponse(
+                success: true,
+                guestSessionID: "guest_abc",
+                expiresAt: "2025-12-31 23:59:59 UTC"
+            ) as! E.Response
         }
 
         fatalError("Unexpected endpoint: \(type(of: endpoint))")

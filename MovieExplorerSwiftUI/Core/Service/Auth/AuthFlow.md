@@ -42,9 +42,18 @@
    - `POST /authentication/session/new` 交換為 `session_id`
 3. 成功後 `AuthStore.update(authResult:)` 更新為 `.loggedIn(sessionID:...)`，UI 依 `isAuthenticated` 進入主畫面。
 
+### 替代流程：訪客登入（Guest Session）
+> 注意：訪客登入會取得 `guest_session_id`，通常僅能使用受限功能（例如評分），不具備帳號層級的個人化資料能力
+
+1. `LoginPage` 點選「訪客登入」，呼叫 `AuthStore.loginAsGuest()`。
+2. `AuthStore.loginAsGuest()` 內部呼叫 `AuthService.createGuestSession()`：
+   - `GET /authentication/guest_session/new` 取得 `guest_session_id` 與 `expires_at`
+3. 成功後 `AuthStore.updateGuest(sessionID:expiresAt:)` 更新為 `.guest(guestSessionID:expiresAt:)`，UI 依 `isAuthenticated` 進入主畫面。
+4. 若建立失敗，`AuthStore.setError` 紀錄錯誤訊息，LoginPage 顯示於底部 overlay。
+
 ### 相關類別與責任
-- `AuthService`: 建立授權 URL、解析回呼、交換 session。
-- `AuthStore`: 持有 `isAuthenticated`、`sessionID`、`authErrorMessage`，並提供登入、回呼處理與重置。
+- `AuthService`: 建立授權 URL、解析回呼、交換 session、建立訪客 session。
+- `AuthStore`: 持有 `AuthIdentity` 與 `authErrorMessage`，並提供登入、訪客登入、回呼處理與重置；`isAuthenticated` 會在 `.loggedIn` 與 `.guest` 時為 true。
 - `AppCoordinator`: 專注於導航狀態（tab、navigation path）與頁面目的地組裝。
 - `LoginPage`: 呼叫 `AuthService.authorizationURL()` 開啟授權，顯示錯誤訊息。
 

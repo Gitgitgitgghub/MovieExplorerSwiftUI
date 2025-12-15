@@ -62,3 +62,13 @@ struct ValidateTokenWithLogin: TMDBEndpointProtocol {
     }
     var headers: [String: String] { ["Content-Type": "application/json"] }
 }
+
+/// 建立訪客 session（不需帳號，可用於評分等受限功能）
+struct CreateGuestSession: TMDBEndpointProtocol {
+    typealias Response = GuestSessionResponse
+
+    /// `/authentication/guest_session/new`
+    var path: String { "/authentication/guest_session/new" }
+    /// 此端點需使用 API Key 查詢參數
+    var authMethodOverride: TMDBService.AuthMethod? { .apiKey(TMDBConfig.apiKey) }
+}

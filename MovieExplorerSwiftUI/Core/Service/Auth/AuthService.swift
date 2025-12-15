@@ -10,6 +10,8 @@ import SwiftUI
 
 /// TMDB 授權流程封裝：取得 request token、組授權網址、交換 session
 struct AuthService {
+
+    // MARK: - Types
     
     /// 授權結果
     struct AuthResult {
@@ -26,7 +28,15 @@ struct AuthService {
         let requestToken: String
         let approved: Bool
     }
-    
+
+    /// 訪客登入結果（帶 guest_session_id 與到期時間）
+    struct GuestResult {
+        /// 訪客 session id（guest_session_id）
+        let sessionID: String
+        /// 到期時間（若解析失敗則為 nil）
+        let expiresAt: Date?
+    }
+
     private let service: TMDBServiceProtocol
     /// TMDB 授權回呼網址（需與 Info.plist 中的 URL scheme 對應）
     private let redirectURL: String = "movieexplorer://auth/callback"
@@ -93,5 +103,13 @@ struct AuthService {
             approved: validatedResponse.success,
             requestToken: validatedResponse.requestToken
         )
+    }
+
+    /// 建立訪客 session（不需登入，可用於評分等受限功能）
+    /// - Returns: 成功時回傳 `sessionID` 與 `expiresAt`
+    func createGuestSession() async throws -> GuestResult {
+        let response: GuestSessionResponse = try await service.request(CreateGuestSession())
+        let expiresAt = DateFormatter.tmdbExpiresAtUTC.date(from: response.expiresAt)
+        return GuestResult(sessionID: response.guestSessionID, expiresAt: expiresAt)
     }
 }

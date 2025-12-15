@@ -15,6 +15,10 @@ struct LoginPage: View {
     /// 由系統開啟外部授權網址
     @Environment(\.openURL) private var openURL
 
+    // MARK: - Constants
+    /// TMDB 註冊頁（引導使用者建立帳號）
+    private let tmdbSignupURLString: String = "https://www.themoviedb.org/signup"
+
     // MARK: - Types
     /// 登入方式（官方授權 / 帳密登入）
     private enum LoginMethod: String, CaseIterable, Identifiable {
@@ -42,8 +46,6 @@ struct LoginPage: View {
     @State private var password: String = ""
     /// 目前選擇的登入方式
     @State private var loginMethod: LoginMethod = .credentials
-    /// 是否已嘗試送出帳密登入（用於顯示欄位驗證提示）
-    @State private var didAttemptCredentialsLogin: Bool = false
     /// 是否正在送出登入/授權請求（用於避免重複點擊）
     @State private var isLoading: Bool = false
     /// LoginPage 自身的錯誤訊息（優先顯示於 `AuthStore.authErrorMessage`）
@@ -87,10 +89,11 @@ struct LoginPage: View {
             loginMethodPicker
             credentialsSection
             primaryActionButton
+            tmdbSignupButton
             divider
                 .padding(.top, 32)
-            socialButtons
-                .padding(.top, 32)
+            guestLoginButton
+                .padding(.top, 24)
         }
     }
 
@@ -114,7 +117,6 @@ struct LoginPage: View {
         .padding(.top, 8)
         .onChange(of: loginMethod) { _, newValue in
             errorMessage = nil
-            didAttemptCredentialsLogin = false
             if newValue == .webAuthorization {
                 password = ""
             }
@@ -127,8 +129,7 @@ struct LoginPage: View {
         if loginMethod == .credentials {
             UsernamePasswordForm(
                 username: $username,
-                password: $password,
-                didAttemptSubmit: didAttemptCredentialsLogin
+                password: $password
             )
         }
     }
@@ -138,8 +139,8 @@ struct LoginPage: View {
         let isDisabled = isPrimaryButtonDisabled
         return Button(action: handlePrimaryAction) {
             Text(primaryButtonTitle)
-                .font(.system(size: 18, weight: .semibold))
-                .foregroundColor(.white)
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundColor(AppColor.primaryText)
                 .frame(maxWidth: .infinity)
                 .padding()
                 .background(isDisabled ? AppColor.accent.opacity(0.35) : AppColor.accent)
@@ -154,23 +155,36 @@ struct LoginPage: View {
         .disabled(isPrimaryButtonDisabled)
     }
 
-    /// 第三方登入（占位用 UI，尚未接入）
-    private var socialButtons: some View {
-        HStack(spacing: 32) {
-            Button(action: { }) {
-                Image(systemName: "apple.logo")
-                    .frame(width: 60, height: 60)
-                    .clipShape(.circle)
-                    .glassEffect()
-            }
-            
-            Button(action: { }) {
-                Image(systemName: "apple.logo")
-                    .frame(width: 60, height: 60)
-                    .clipShape(.circle)
-                    .glassEffect()
-            }
+    /// 訪客登入（建立 guest session，允許進入 App 的受限功能）
+    private var guestLoginButton: some View {
+        Button(action: loginAsGuest) {
+            Text(isLoading ? "處理中..." : "訪客登入")
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundColor(AppColor.primaryText)
+                .frame(maxWidth: .infinity)
+                .padding()
+                .background(AppColor.accent)
+                .clipShape(.capsule)
+                .overlay {
+                    Capsule()
+                        .stroke(AppColor.cardStroke.opacity(0.5), lineWidth: 1)
+                }
         }
+        .padding(.horizontal, 16)
+        .disabled(isLoading)
+    }
+
+    /// 引導使用者前往 TMDB 註冊頁建立帳號
+    private var tmdbSignupButton: some View {
+        Button(action: openTMDBSignup) {
+            Text("還沒有 TMDB 帳號？前往註冊")
+                .font(.footnote)
+                .foregroundColor(AppColor.mutedText)
+                .underline()
+        }
+        .buttonStyle(.plain)
+        .padding(.top, 8)
+        .disabled(isLoading)
     }
 
     /// 底部錯誤訊息 overlay（優先顯示 `errorMessage`，否則顯示 `AuthStore.authErrorMessage`）
@@ -222,7 +236,6 @@ struct LoginPage: View {
     private func loginWithCredentials() {
         Task { @MainActor in
             guard !isLoading else { return }
-            didAttemptCredentialsLogin = true
             guard !username.isEmpty, !password.isEmpty else {
                 if username.isEmpty {
                     errorMessage = "請輸入 TMDB 使用者名稱"
@@ -240,13 +253,34 @@ struct LoginPage: View {
         }
     }
 
+    /// 開啟 TMDB 註冊頁（使用系統瀏覽器）
+    private func openTMDBSignup() {
+        guard let url = URL(string: tmdbSignupURLString) else {
+            errorMessage = "註冊頁網址不正確，請稍後再試"
+            return
+        }
+        openURL(url)
+    }
+
+    /// 以訪客身分建立 session（不需帳號），成功後進入 App
+    private func loginAsGuest() {
+        Task { @MainActor in
+            guard !isLoading else { return }
+            isLoading = true
+            errorMessage = nil
+            defer { isLoading = false }
+
+            await authStore.loginAsGuest()
+        }
+    }
+
     /// 分隔線區塊
     private var divider: some View {
         HStack {
             Rectangle()
                 .frame(maxWidth: .infinity, maxHeight: 1)
                 .foregroundColor(AppColor.mutedText)
-            Text("Or continue with")
+            Text("或使用訪客登入")
                 .foregroundColor(AppColor.mutedText)
                 .lineLimit(1)
                 .padding(8)

@@ -5,7 +5,7 @@
 - 語系：`TMDBService` 會在未指定 `language` 時自動帶入 `defaultLanguage`（預設 `en-US`）。
 - 認證：
   - 服務初始化會優先使用 `APIKey.json` 的 v4 `accessToken` 以 Bearer Token 發送；若不存在則改用 v3 `apiKey` 置於 query string。
-  - `RequestToken` 與 `CreateSession` 明確覆寫為使用 v3 `apiKey` 查詢參數。
+  - `RequestToken`、`CreateSession` 與 `CreateGuestSession` 明確覆寫為使用 v3 `apiKey` 查詢參數。
 - 請求：`TMDBEndpointProtocol` 讓端點宣告 `path`、HTTP 方法、查詢參數、body 與額外標頭，`TMDBService.request` 會組合成完整 `URLRequest`。
 - 回應：所有端點以 `JSONDecoder` 解碼為對應的 `Response` 型別；測試/預覽可用 `FakeTMDBService` 直接回傳 `Mockable.mock`。
 
@@ -122,3 +122,9 @@
 - 認證：強制使用 v3 `apiKey` query 參數。
 - Body：`{"username":"<tmdb username>","password":"<tmdb password>","request_token":"<token>"}`，`Content-Type: application/json`。
 - 回應：`RequestTokenResponse`（成功時回傳已驗證的 `request_token` 與到期時間）。
+
+### CreateGuestSession
+- 路徑：`GET /authentication/guest_session/new`
+- 認證：強制使用 v3 `apiKey` query 參數。
+- 參數：無額外查詢參數；自動附帶 `language`。
+- 回應：`GuestSessionResponse`（成功時包含 `guest_session_id` 與 `expires_at`）。

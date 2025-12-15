@@ -39,8 +39,12 @@ final class AuthStore: ObservableObject {
     
     /// 是否為登入身分
     var isAuthenticated: Bool {
-        if case .loggedIn = identity { return true }
-        return false
+        switch identity {
+        case .loggedIn, .guest:
+            return true
+        case .anonymous:
+            return false
+        }
     }
     
     /// 記錄錯誤訊息
@@ -62,6 +66,16 @@ final class AuthStore: ObservableObject {
             update(authResult: result)
         } catch {
             setError("登入失敗：\(error.localizedDescription)")
+        }
+    }
+
+    /// 建立訪客 session 並更新為 guest 身分
+    func loginAsGuest() async {
+        do {
+            let result = try await authService.createGuestSession()
+            updateGuest(sessionID: result.sessionID, expiresAt: result.expiresAt)
+        } catch {
+            setError("訪客登入失敗：\(error.localizedDescription)")
         }
     }
     

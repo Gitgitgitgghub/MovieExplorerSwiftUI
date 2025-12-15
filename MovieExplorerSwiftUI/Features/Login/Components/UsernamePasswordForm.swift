@@ -7,15 +7,13 @@
 
 import SwiftUI
 
-/// TMDB 使用者名稱/密碼登入表單（含欄位空值驗證提示）
+/// TMDB 使用者名稱/密碼登入表單（提供基本輸入欄位）
 struct UsernamePasswordForm: View {
 
     /// TMDB 使用者名稱（非 email）
     @Binding var username: String
     /// TMDB 密碼（僅用於本次登入，不應持久化）
     @Binding var password: String
-    /// 是否已嘗試送出（用於顯示欄位驗證提示）
-    let didAttemptSubmit: Bool
 
     /// 帳密輸入表單內容
     var body: some View {
@@ -32,14 +30,6 @@ struct UsernamePasswordForm: View {
             .cornerRadius(10)
             .padding(.horizontal, 16)
 
-            if didAttemptSubmit && username.isEmpty {
-                Text("請輸入 TMDB 使用者名稱")
-                    .font(.footnote)
-                    .foregroundColor(.red)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal, 20)
-            }
-
             SecureField(text: $password) {
                 Text("TMDB Password")
                     .foregroundColor(AppColor.mutedText)
@@ -49,14 +39,6 @@ struct UsernamePasswordForm: View {
             .background(AppColor.surface)
             .cornerRadius(10)
             .padding(.horizontal, 16)
-
-            if didAttemptSubmit && password.isEmpty {
-                Text("請輸入 TMDB 密碼")
-                    .font(.footnote)
-                    .foregroundColor(.red)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal, 20)
-            }
         }
     }
 
@@ -76,7 +58,7 @@ struct UsernamePasswordForm: View {
     @Previewable @State var password: String = ""
 
     return VStack(spacing: 12) {
-        UsernamePasswordForm(username: $username, password: $password, didAttemptSubmit: true)
+        UsernamePasswordForm(username: $username, password: $password)
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity)
     .appBackground()
