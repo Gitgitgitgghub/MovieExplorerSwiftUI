@@ -116,3 +116,9 @@
 - 認證：強制使用 v3 `apiKey` query 參數。
 - Body：`{"request_token": "<已授權 token>"}`，`Content-Type: application/json`。
 - 回應：`CreateSessionResponse`（成功時包含 `session_id`）。
+
+### ValidateTokenWithLogin
+- 路徑：`POST /authentication/token/validate_with_login`
+- 認證：強制使用 v3 `apiKey` query 參數。
+- Body：`{"username":"<tmdb username>","password":"<tmdb password>","request_token":"<token>"}`，`Content-Type: application/json`。
+- 回應：`RequestTokenResponse`（成功時回傳已驗證的 `request_token` 與到期時間）。

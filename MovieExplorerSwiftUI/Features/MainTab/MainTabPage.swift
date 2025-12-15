@@ -57,7 +57,7 @@ struct MainTabPage: View {
 
 #Preview {
     let store = AuthStore()
-    let coordinator = AppCoordinator(authStore: store)
+    let coordinator = AppCoordinator()
     return MainTabPage()
         .environmentObject(coordinator)
         .environmentObject(store)

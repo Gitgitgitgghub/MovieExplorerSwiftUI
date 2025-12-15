@@ -35,3 +35,30 @@ struct CreateSession: TMDBEndpointProtocol {
     }
     var headers: [String: String] { ["Content-Type": "application/json"] }
 }
+
+/// 以 TMDB 帳號密碼驗證 request token（建立「從登入建立 session」流程用）
+struct ValidateTokenWithLogin: TMDBEndpointProtocol {
+    typealias Response = RequestTokenResponse
+
+    /// TMDB 使用者名稱（非 email）
+    let username: String
+    /// TMDB 密碼（僅用於本次請求，不應持久化）
+    let password: String
+    /// 由 `/authentication/token/new` 取得的 request token
+    let requestToken: String
+
+    var method: HTTPMethod { .post }
+    /// `/authentication/token/validate_with_login`
+    var path: String { "/authentication/token/validate_with_login" }
+    /// 此端點需使用 API Key 查詢參數
+    var authMethodOverride: TMDBService.AuthMethod? { .apiKey(TMDBConfig.apiKey) }
+    /// JSON body：`{"username":"...","password":"...","request_token":"..."}`
+    var body: Data? {
+        try? JSONEncoder().encode([
+            "username": username,
+            "password": password,
+            "request_token": requestToken
+        ])
+    }
+    var headers: [String: String] { ["Content-Type": "application/json"] }
+}

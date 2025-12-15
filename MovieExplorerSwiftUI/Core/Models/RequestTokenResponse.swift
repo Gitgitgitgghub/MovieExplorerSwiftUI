@@ -22,3 +22,16 @@ struct RequestTokenResponse: Decodable {
         case requestToken = "request_token"
     }
 }
+
+extension RequestTokenResponse: Mockable {
+    /// 測試/預覽用 request token 回應假資料
+    static var mockJson: String {
+        """
+        {
+          "success": true,
+          "expires_at": "2025-12-31 23:59:59 UTC",
+          "request_token": "mock_request_token"
+        }
+        """
+    }
+}

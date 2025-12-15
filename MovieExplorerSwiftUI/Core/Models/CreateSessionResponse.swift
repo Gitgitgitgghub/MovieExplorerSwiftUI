@@ -19,3 +19,15 @@ struct CreateSessionResponse: Decodable {
         case sessionID = "session_id"
     }
 }
+
+extension CreateSessionResponse: Mockable {
+    /// 測試/預覽用 session 建立回應假資料
+    static var mockJson: String {
+        """
+        {
+          "success": true,
+          "session_id": "mock_session_id"
+        }
+        """
+    }
+}

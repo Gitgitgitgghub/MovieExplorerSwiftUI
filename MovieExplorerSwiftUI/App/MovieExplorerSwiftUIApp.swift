@@ -10,13 +10,12 @@ import SwiftUI
 @main
 struct MovieExplorerSwiftUIApp: App {
 
-    @StateObject private var authStore = AuthStore()
+    @StateObject private var authStore: AuthStore
     @StateObject private var coordinator: AppCoordinator
 
     init() {
-        let store = AuthStore()
-        _authStore = StateObject(wrappedValue: store)
-        _coordinator = StateObject(wrappedValue: AppCoordinator(authStore: store))
+        _authStore = StateObject(wrappedValue: AuthStore())
+        _coordinator = StateObject(wrappedValue: AppCoordinator())
     }
 
     var body: some Scene {
@@ -34,7 +33,7 @@ struct MovieExplorerSwiftUIApp: App {
             .animation(.easeInOut, value: authStore.isAuthenticated)
             .onOpenURL { url in
                 Task {
-                    await coordinator.handleAuthCallback(url: url)
+                    await authStore.handleAuthCallback(url: url)
                 }
             }
         }

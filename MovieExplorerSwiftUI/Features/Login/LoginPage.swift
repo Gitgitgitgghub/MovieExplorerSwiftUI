@@ -7,65 +7,175 @@
 
 import SwiftUI
 
+/// 登入頁：提供 TMDB 官方授權與帳密登入兩種方式，並顯示錯誤提示
 struct LoginPage: View {
     
-    @EnvironmentObject private var coordinator: AppCoordinator
+    /// 授權狀態與登入行為來源
     @EnvironmentObject private var authStore: AuthStore
+    /// 由系統開啟外部授權網址
     @Environment(\.openURL) private var openURL
-    @State private var email: String = ""
-    @State private var password: String = ""
-    @State private var isLoading: Bool = false
-    @State private var errorMessage: String?
-    /// 控制是否顯示保留的帳號密碼欄位（預設隱藏）
-    private let showLegacyCredentials = false
-    
-    var body: some View {
-        VStack(spacing: 12) {
-            Text("Welcome back")
-                .font(.title)
-                .bold()
-                .foregroundColor(AppColor.mutedText)
-            if showLegacyCredentials {
-                legacyCredentialsForm
-            }
-            Button(action: {
-                startTMDBAuthorization()
-            }) {
-                Text(isLoading ? "前往 TMDB 授權中..." : "前往 TMDB 授權")
-                    .font(.system(size: 18, weight: .semibold))
-                    .foregroundColor(.white)
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(AppColor.accent)
-                    .clipShape(.capsule)
-            }
-            .padding(.init(top: 32, leading: 16, bottom: 0, trailing: 16))
-            .disabled(isLoading)
-            if showLegacyCredentials {
-                divider
-                    .padding(.top, 32)
-                HStack(spacing: 32) {
-                    Button(action: { }) {
-                        Image(systemName: "apple.logo")
-                            .frame(width: 60, height: 60)
-                            .clipShape(.circle)
-                            .glassEffect()
-                    }
-                    
-                    Button(action: { }) {
-                        Image(systemName: "apple.logo")
-                            .frame(width: 60, height: 60)
-                            .clipShape(.circle)
-                            .glassEffect()
-                    }
-                }
-                .padding(.top, 32)
+
+    // MARK: - Types
+    /// 登入方式（官方授權 / 帳密登入）
+    private enum LoginMethod: String, CaseIterable, Identifiable {
+        /// 透過 TMDB 官方授權頁（redirect callback）
+        case webAuthorization
+        /// 以 TMDB 帳號密碼建立 session
+        case credentials
+
+        /// `ForEach` 穩定識別值
+        var id: String { rawValue }
+
+        /// UI 顯示用標題
+        var title: String {
+            switch self {
+            case .webAuthorization: return "官方授權"
+            case .credentials: return "帳密登入"
             }
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .appBackground()
-        .padding(.top, 16)
-        .overlay(alignment: .bottom) {
+    }
+
+    // MARK: - State
+    /// TMDB 使用者名稱（非 email）
+    @State private var username: String = ""
+    /// TMDB 密碼（僅用於本次登入，不應持久化）
+    @State private var password: String = ""
+    /// 目前選擇的登入方式
+    @State private var loginMethod: LoginMethod = .credentials
+    /// 是否已嘗試送出帳密登入（用於顯示欄位驗證提示）
+    @State private var didAttemptCredentialsLogin: Bool = false
+    /// 是否正在送出登入/授權請求（用於避免重複點擊）
+    @State private var isLoading: Bool = false
+    /// LoginPage 自身的錯誤訊息（優先顯示於 `AuthStore.authErrorMessage`）
+    @State private var errorMessage: String?
+
+    // MARK: - Derived Values
+    /// 主按鈕是否不可點擊（避免重複送出，或帳密欄位未填）
+    private var isPrimaryButtonDisabled: Bool {
+        if isLoading { return true }
+        switch loginMethod {
+        case .webAuthorization:
+            return false
+        case .credentials:
+            return username.isEmpty || password.isEmpty
+        }
+    }
+
+    /// 主按鈕標題（依登入方式與 loading 狀態切換）
+    private var primaryButtonTitle: String {
+        switch loginMethod {
+        case .webAuthorization:
+            return isLoading ? "前往 TMDB 授權中..." : "前往 TMDB 授權"
+        case .credentials:
+            return isLoading ? "登入中..." : "使用帳密登入"
+        }
+    }
+    
+    // MARK: - View
+    /// 登入頁主畫面
+    var body: some View {
+        content
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .appBackground()
+            .overlay(alignment: .bottom) { errorOverlay }
+    }
+    
+    /// 登入頁內容區塊（不含背景與錯誤 overlay）
+    private var content: some View {
+        VStack(spacing: 12) {
+            header
+            loginMethodPicker
+            credentialsSection
+            primaryActionButton
+            divider
+                .padding(.top, 32)
+            socialButtons
+                .padding(.top, 32)
+        }
+    }
+
+    /// 標題區塊
+    private var header: some View {
+        Text("Welcome back")
+            .font(.title)
+            .bold()
+            .foregroundColor(AppColor.mutedText)
+    }
+
+    /// 登入方式切換（官方授權 / 帳密登入）
+    private var loginMethodPicker: some View {
+        Picker("登入方式", selection: $loginMethod) {
+            ForEach(LoginMethod.allCases) { method in
+                Text(method.title).tag(method)
+            }
+        }
+        .pickerStyle(.segmented)
+        .padding(.horizontal, 16)
+        .padding(.top, 8)
+        .onChange(of: loginMethod) { _, newValue in
+            errorMessage = nil
+            didAttemptCredentialsLogin = false
+            if newValue == .webAuthorization {
+                password = ""
+            }
+        }
+    }
+
+    /// 帳密登入表單（僅在 `credentials` 模式顯示）
+    @ViewBuilder
+    private var credentialsSection: some View {
+        if loginMethod == .credentials {
+            UsernamePasswordForm(
+                username: $username,
+                password: $password,
+                didAttemptSubmit: didAttemptCredentialsLogin
+            )
+        }
+    }
+
+    /// 主要動作按鈕（依登入方式切換：授權 / 登入）
+    private var primaryActionButton: some View {
+        let isDisabled = isPrimaryButtonDisabled
+        return Button(action: handlePrimaryAction) {
+            Text(primaryButtonTitle)
+                .font(.system(size: 18, weight: .semibold))
+                .foregroundColor(.white)
+                .frame(maxWidth: .infinity)
+                .padding()
+                .background(isDisabled ? AppColor.accent.opacity(0.35) : AppColor.accent)
+                .clipShape(.capsule)
+                .overlay {
+                    Capsule()
+                        .stroke(AppColor.cardStroke.opacity(isDisabled ? 0.25 : 0.5), lineWidth: 1)
+                }
+                .opacity(isDisabled ? 0.85 : 1)
+        }
+        .padding(.init(top: 32, leading: 16, bottom: 0, trailing: 16))
+        .disabled(isPrimaryButtonDisabled)
+    }
+
+    /// 第三方登入（占位用 UI，尚未接入）
+    private var socialButtons: some View {
+        HStack(spacing: 32) {
+            Button(action: { }) {
+                Image(systemName: "apple.logo")
+                    .frame(width: 60, height: 60)
+                    .clipShape(.circle)
+                    .glassEffect()
+            }
+            
+            Button(action: { }) {
+                Image(systemName: "apple.logo")
+                    .frame(width: 60, height: 60)
+                    .clipShape(.circle)
+                    .glassEffect()
+            }
+        }
+    }
+
+    /// 底部錯誤訊息 overlay（優先顯示 `errorMessage`，否則顯示 `AuthStore.authErrorMessage`）
+    private var errorOverlay: some View {
+        Group {
             if let message = (errorMessage ?? authStore.authErrorMessage) {
                 Text(message)
                     .font(.footnote)
@@ -78,29 +188,19 @@ struct LoginPage: View {
             }
         }
     }
-    
-    private var legacyCredentialsForm: some View {
-        Group {
-            TextField(text: $email) {
-                Text("Email")
-                    .foregroundColor(AppColor.mutedText)
-            }
-            .padding()
-            .background(AppColor.surface)
-            .cornerRadius(10)
-            .padding(.horizontal, 16)
-            SecureField(text: $password) {
-                Text("Password")
-                    .foregroundColor(AppColor.mutedText)
-            }
-            .padding()
-            .background(AppColor.surface)
-            .cornerRadius(10)
-            .padding(.horizontal, 16)
+
+    // MARK: - Actions
+    /// 依登入方式執行主要動作
+    private func handlePrimaryAction() {
+        switch loginMethod {
+        case .webAuthorization:
+            startTMDBAuthorization()
+        case .credentials:
+            loginWithCredentials()
         }
-        .accessibilityHidden(true)
     }
 
+    /// 啟動 TMDB 官方授權頁流程（取得 request token 並導向瀏覽器）
     private func startTMDBAuthorization() {
         Task { @MainActor in
             guard !isLoading else { return }
@@ -117,7 +217,30 @@ struct LoginPage: View {
             }
         }
     }
+    
+    /// 以 TMDB 帳號密碼登入（在 UI 端檢查空值後交由 `AuthStore` 執行）
+    private func loginWithCredentials() {
+        Task { @MainActor in
+            guard !isLoading else { return }
+            didAttemptCredentialsLogin = true
+            guard !username.isEmpty, !password.isEmpty else {
+                if username.isEmpty {
+                    errorMessage = "請輸入 TMDB 使用者名稱"
+                } else {
+                    errorMessage = "請輸入 TMDB 密碼"
+                }
+                return
+            }
+            isLoading = true
+            errorMessage = nil
+            defer { isLoading = false }
+            
+            await authStore.loginWithTMDBCredentials(username: username, password: password)
+            password = ""
+        }
+    }
 
+    /// 分隔線區塊
     private var divider: some View {
         HStack {
             Rectangle()
@@ -137,8 +260,6 @@ struct LoginPage: View {
 }
 #Preview {
     let store = AuthStore()
-    let coordinator = AppCoordinator(authStore: store)
     return LoginPage()
-        .environmentObject(coordinator)
         .environmentObject(store)
 }

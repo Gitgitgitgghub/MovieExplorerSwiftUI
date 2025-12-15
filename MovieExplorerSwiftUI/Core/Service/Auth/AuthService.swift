@@ -70,4 +70,28 @@ struct AuthService {
         let sessionResponse: CreateSessionResponse = try await service.request(CreateSession(requestToken: requestToken))
         return AuthResult(sessionID: sessionResponse.sessionID, approved: true, requestToken: requestToken)
     }
+
+    /// 以 TMDB 帳號密碼建立 session（取 token → validate_with_login → session/new）
+    /// - Parameters:
+    ///   - username: TMDB 使用者名稱（非 email）
+    ///   - password: TMDB 密碼（僅用於本次請求，不應持久化）
+    /// - Returns: 成功時回傳 `sessionID` 與驗證後的 `requestToken`
+    func createSessionFromLogin(username: String, password: String) async throws -> AuthResult {
+        let tokenResponse: RequestTokenResponse = try await service.request(RequestToken())
+        let validatedResponse: RequestTokenResponse = try await service.request(
+            ValidateTokenWithLogin(
+                username: username,
+                password: password,
+                requestToken: tokenResponse.requestToken
+            )
+        )
+        let sessionResponse: CreateSessionResponse = try await service.request(
+            CreateSession(requestToken: validatedResponse.requestToken)
+        )
+        return AuthResult(
+            sessionID: sessionResponse.sessionID,
+            approved: validatedResponse.success,
+            requestToken: validatedResponse.requestToken
+        )
+    }
 }
