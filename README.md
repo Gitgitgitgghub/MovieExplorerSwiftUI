@@ -48,7 +48,7 @@ MovieExplorerSwiftUI/
 - 未提供檔案時，`TMDBConfig` 在初始化會直接 `fatalError`。
 - v4 Bearer token 用於大多數讀取/寫入端點，request token / session 建立仍需 v3 `apiKey`，兩者需並存。
 - CI / 自動化環境可於建置前動態生成 `APIKey.json`（例如從秘密儲存解密後寫入）。
-- 範例：`APIKey.example.json`；更多環境說明見 `docs/ENV.md`。
+- 範例：`APIKey.example.json`；更多環境說明見 `MovieExplorerSwiftUI/Docs/ENV.md`。
 
 ## 認證與授權簡述
 - 授權流程：`AuthService` 取得 request_token → 開啟 `https://www.themoviedb.org/authenticate/{token}?redirect_to=movieexplorer://auth/callback` → 回呼後以 `CreateSession` 交換 `session_id`（詳見 `Core/Auth/AuthFlow.md`）。
