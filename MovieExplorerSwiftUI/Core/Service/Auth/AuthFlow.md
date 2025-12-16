@@ -21,7 +21,7 @@
      ```
 
 3. **處理回呼**
-   - `MovieExplorerSwiftUIApp` 的 `.onOpenURL` 呼叫 `AuthStore.handleAuthCallback(url:)`。
+- `MovieExplorerSwiftUIApp` 的 `.onOpenURL` 呼叫 `AuthStore.handleAuthCallback(url:)`（`async throws`），並在失敗時以全域 alert 顯示錯誤訊息。
    - `AuthStore` 使用 `AuthService.parseCallback` 解析參數；若 `approved` 為 true，呼叫 `exchangeSession`。
 
 4. **交換 session**
@@ -55,7 +55,7 @@
 ### 替代流程：訪客登入（Guest Session）
 > 注意：訪客登入會取得 `guest_session_id`，通常僅能使用受限功能（例如評分），不具備帳號層級的個人化資料能力
 
-1. `LoginPage` 點選「訪客登入」，呼叫 `AuthStore.loginAsGuest()`。
+1. `LoginPage` 點選「訪客登入」，呼叫 `AuthStore.loginAsGuest()`（`async throws`）。
 2. `AuthStore.loginAsGuest()` 內部呼叫 `AuthService.createGuestSession()`：
    - `GET /authentication/guest_session/new` 取得 `guest_session_id` 與 `expires_at`
 3. 成功後 `AuthStore.updateGuest(sessionID:expiresAt:)` 更新為 `.guest(guestSessionID:expiresAt:)`，UI 依 `isAuthenticated` 進入主畫面。
@@ -104,7 +104,7 @@
 
 ### 相關類別與責任
 - `AuthService`: 建立授權 URL、解析回呼、交換 session、建立訪客 session。
-- `AuthStore`: 持有 `AuthIdentity` 與 `authErrorMessage`，提供登入、訪客登入、回呼處理、登出與重置；並負責 Keychain 還原/保存憑證，且會在訪客過期時視為未授權。
+- `AuthStore`: 持有 `AuthIdentity`，提供登入、訪客登入、回呼處理、登出與重置；並負責 Keychain 還原/保存憑證，且會在訪客過期時視為未授權。
 - `AppCoordinator`: 專注於導航狀態（tab、navigation path）與頁面目的地組裝。
 - `LoginPage`: 呼叫 `AuthService.authorizationURL()` 開啟授權，顯示錯誤訊息。
 - `SettingPage`: 提供登出入口（清除 Keychain 內 session）。

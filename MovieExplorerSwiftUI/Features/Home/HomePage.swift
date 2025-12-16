@@ -25,11 +25,11 @@ struct HomePage: View {
                     }
                 }
             }
-            .opacity(viewModel.loadingStatus.isLoading ? 0 : 1)
-            .disabled(viewModel.loadingStatus.isLoading)
-            .animation(.easeInOut(duration: 0.25), value: viewModel.loadingStatus)
+            .opacity(viewModel.loadingState.isLoading ? 0 : 1)
+            .disabled(viewModel.loadingState.isLoading)
+            .animation(.easeInOut(duration: 0.25), value: viewModel.loadingState)
             .overlay {
-                if viewModel.loadingStatus.isLoading {
+                if viewModel.loadingState.isLoading {
                     CinematicLoadingView(
                         title: "正在載入片單",
                         subtitle: "同步趨勢、票房與演員陣容，馬上就好"

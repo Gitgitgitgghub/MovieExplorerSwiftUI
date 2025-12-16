@@ -8,12 +8,12 @@
 import Foundation
 
 @MainActor
-class HomePageViewModel: ObservableObject {
+class HomePageViewModel: ObservableObject, LoadingStateProviding {
     
     
     //MARK: - Published Properties
     @Published var sections: [Section] = []
-    @Published var loadingStatus: LoadingStatus = .idle
+    @Published var loadingState: LoadingState = .idle
     
     private let service: TMDBServiceProtocol
     
@@ -22,8 +22,11 @@ class HomePageViewModel: ObservableObject {
     }
     
     func load() async {
-        loadingStatus = .loading
-        do {
+        await withLoadingState(
+            onError: { [weak self] _ in
+                self?.sections = []
+            }
+        ) {
             async let t = service.request(TrendingMovies())
             async let p = service.request(PopularMovies())
             async let r = service.request(TopRatedMovies())
@@ -43,13 +46,7 @@ class HomePageViewModel: ObservableObject {
                 nowPlayingResponse: nowPlayingResponse,
                 upcomingResponse: upcomingResponse
             )
-
-            loadingStatus = .loaded
-        } catch {
-            sections = []
-            loadingStatus = .failed(message: error.localizedDescription)
         }
-        
     }
 
     private func buildSections(
@@ -84,16 +81,6 @@ class HomePageViewModel: ObservableObject {
         return sections
     }
 
-    //MARK: - Loading Status
-    enum LoadingStatus: Equatable {
-        case idle
-        case loading
-        case loaded
-        case failed(message: String)
-        
-        var isLoading: Bool { self == .loading }
-    }
-    
     //MARK: Section
     enum Section {
         case trending(data: MovieResponse)

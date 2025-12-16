@@ -8,22 +8,7 @@
 import SwiftUI
 
 struct MovieDetailPage: View {
-    
-    enum LoadingState: Equatable {
-        case idle
-        case loading
-        case loaded
-        case failed(message: String)
 
-        var isLoading: Bool { self == .loading }
-
-        var errorMessage: String? {
-            if case let .failed(message) = self {
-                return message
-            }
-            return nil
-        }
-    }
     @EnvironmentObject private var coordinator: AppCoordinator
     @Environment(\.openURL) private var openURL
     var movieID: Int
@@ -151,8 +136,7 @@ extension MovieDetailPage {
     }
     
     func load() async {
-        loadingState = .loading
-        do {
+        await withLoadingState(setState: { loadingState = $0 }) {
             async let detail = service.request(MovieDetails(movieID: movieID))
             async let credits = service.request(MovieCredits(movieID: movieID))
             async let videos = service.request(MovieVideos(movieID: movieID))
@@ -160,9 +144,6 @@ extension MovieDetailPage {
             self.detail = detailResponse
             self.credits = creditsResponse
             self.videos = videosResponse
-            loadingState = .loaded
-        } catch {
-            loadingState = .failed(message: error.localizedDescription)
         }
     }
     

@@ -10,6 +10,23 @@ import Foundation
 /// 管理 TMDB 授權狀態的 Store
 @MainActor
 final class AuthStore: ObservableObject {
+
+    /// 授權流程錯誤：提供可直接顯示給使用者的訊息。
+    enum AuthError: LocalizedError, Equatable {
+        /// 使用者名稱或密碼未填
+        case missingCredentials
+        /// 授權未通過（使用者在 TMDB 授權頁按下拒絕/取消）
+        case authorizationNotApproved
+
+        var errorDescription: String? {
+            switch self {
+            case .missingCredentials:
+                return "請輸入 TMDB 使用者名稱與密碼"
+            case .authorizationNotApproved:
+                return "授權未通過，請重試"
+            }
+        }
+    }
     
     /// 授權流程服務（負責解析回呼與交換 session）
     private let authService: AuthService
@@ -18,8 +35,6 @@ final class AuthStore: ObservableObject {
     
     /// 當前使用者身分（登入/訪客/匿名）
     @Published var identity: AuthIdentity = .anonymous
-    /// 授權相關錯誤訊息（顯示於 UI）
-    @Published var authErrorMessage: String?
     
     /// 建立 `AuthStore`，可注入測試用的 `AuthService` 與憑證儲存層
     /// - Parameters:
@@ -38,14 +53,12 @@ final class AuthStore: ObservableObject {
     func update(authResult: AuthService.AuthResult) {
         identity = .loggedIn(sessionID: authResult.sessionID, accountID: nil)
         credentialStore.writeSessionID(authResult.sessionID)
-        authErrorMessage = nil
     }
     
     /// 更新為 guest 身分（可評分，帶到期時間）
     func updateGuest(sessionID: String, expiresAt: Date?) {
         identity = .guest(guestSessionID: sessionID, expiresAt: expiresAt)
         credentialStore.writeGuestSession(sessionID: sessionID, expiresAt: expiresAt)
-        authErrorMessage = nil
     }
     
     /// 是否為登入身分
@@ -58,58 +71,38 @@ final class AuthStore: ObservableObject {
         }
     }
     
-    /// 記錄錯誤訊息
-    func setError(_ message: String) {
-        authErrorMessage = message
-    }
-    
     /// 以 TMDB 帳密登入建立 session，成功後更新為 logged in 身分
     /// - Parameters:
     ///   - username: TMDB 使用者名稱（非 email）
     ///   - password: TMDB 密碼（僅用於本次請求，不應持久化）
-    func loginWithTMDBCredentials(username: String, password: String) async {
+    func loginWithTMDBCredentials(username: String, password: String) async throws {
         guard !username.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, !password.isEmpty else {
-            setError("請輸入 TMDB 使用者名稱與密碼")
-            return
+            throw AuthError.missingCredentials
         }
-        do {
-            let result = try await authService.createSessionFromLogin(username: username, password: password)
-            update(authResult: result)
-        } catch {
-            setError("登入失敗：\(error.localizedDescription)")
-        }
+        let result = try await authService.createSessionFromLogin(username: username, password: password)
+        update(authResult: result)
     }
 
     /// 建立訪客 session 並更新為 guest 身分
-    func loginAsGuest() async {
-        do {
-            let result = try await authService.createGuestSession()
-            updateGuest(sessionID: result.sessionID, expiresAt: result.expiresAt)
-        } catch {
-            setError("訪客登入失敗：\(error.localizedDescription)")
-        }
+    func loginAsGuest() async throws {
+        let result = try await authService.createGuestSession()
+        updateGuest(sessionID: result.sessionID, expiresAt: result.expiresAt)
     }
     
     /// 處理 TMDB 授權回呼，交換 request token 為 session 並更新登入狀態
     /// - Parameter url: `movieexplorer://auth/callback?request_token=...&approved=true` 格式的回呼網址
-    func handleAuthCallback(url: URL) async {
+    func handleAuthCallback(url: URL) async throws {
         guard let payload = authService.parseCallback(url: url) else { return }
         guard payload.approved else {
-            setError("授權未通過，請重試")
-            return
+            throw AuthError.authorizationNotApproved
         }
-        do {
-            let result = try await authService.exchangeSession(requestToken: payload.requestToken)
-            update(authResult: result)
-        } catch {
-            setError("交換 session 失敗：\(error.localizedDescription)")
-        }
+        let result = try await authService.exchangeSession(requestToken: payload.requestToken)
+        update(authResult: result)
     }
     
     /// 重置為匿名狀態
     func reset() {
         identity = .anonymous
-        authErrorMessage = nil
     }
 
     /// 登出並清除持久化憑證（回到登入頁）

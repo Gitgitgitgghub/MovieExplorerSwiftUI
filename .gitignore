@@ -3,3 +3,5 @@ APIKey.json
 xcuserdata/
 MovieExplorerSwiftUI.xcodeproj/xcuserdata/
 *.xcuserstate
+DerivedData/
+Backups/

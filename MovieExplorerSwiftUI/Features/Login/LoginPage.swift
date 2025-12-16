@@ -12,6 +12,8 @@ struct LoginPage: View {
     
     /// 授權狀態與登入行為來源
     @EnvironmentObject private var authStore: AuthStore
+    /// 全域提示/彈窗狀態（用於顯示錯誤對話框）
+    @EnvironmentObject private var uiStore: AppUIStore
     /// 由系統開啟外部授權網址
     @Environment(\.openURL) private var openURL
 
@@ -46,15 +48,18 @@ struct LoginPage: View {
     @State private var password: String = ""
     /// 目前選擇的登入方式
     @State private var loginMethod: LoginMethod = .credentials
-    /// 是否正在送出登入/授權請求（用於避免重複點擊）
-    @State private var isLoading: Bool = false
-    /// LoginPage 自身的錯誤訊息（優先顯示於 `AuthStore.authErrorMessage`）
-    @State private var errorMessage: String?
+    /// 目前載入狀態（用於避免重複點擊與顯示全頁載入 overlay）
+    @State private var loadingState: LoadingState = .idle
+    /// 是否正在啟動外部授權流程（避免重複點擊，並顯示全頁載入 overlay）
+    @State private var isLaunchingAuthorization: Bool = false
 
     // MARK: - Derived Values
+    /// 是否正在處理登入/授權相關動作（用於顯示全頁載入 overlay）
+    private var isBusy: Bool { loadingState.isLoading || isLaunchingAuthorization }
+
     /// 主按鈕是否不可點擊（避免重複送出，或帳密欄位未填）
     private var isPrimaryButtonDisabled: Bool {
-        if isLoading { return true }
+        if isBusy { return true }
         switch loginMethod {
         case .webAuthorization:
             return false
@@ -63,23 +68,47 @@ struct LoginPage: View {
         }
     }
 
-    /// 主按鈕標題（依登入方式與 loading 狀態切換）
+    /// 主按鈕標題（依登入方式切換，不隨 loading 改變）
     private var primaryButtonTitle: String {
         switch loginMethod {
         case .webAuthorization:
-            return isLoading ? "前往 TMDB 授權中..." : "前往 TMDB 授權"
+            return "前往 TMDB 授權"
         case .credentials:
-            return isLoading ? "登入中..." : "使用帳密登入"
+            return "使用帳密登入"
         }
     }
-    
+
     // MARK: - View
     /// 登入頁主畫面
     var body: some View {
         content
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .appBackground()
-            .overlay(alignment: .bottom) { errorOverlay }
+            .disabled(isBusy)
+            .overlay { loadingOverlay }
+            .onChange(of: loadingState) { _, newValue in
+                if case let .failed(message) = newValue {
+                    uiStore.showError(message)
+                    loadingState = .idle
+                }
+            }
+    }
+
+    /// 全頁載入 overlay（涵蓋登入、訪客登入與啟動 web 授權）
+    @ViewBuilder
+    private var loadingOverlay: some View {
+        if isBusy {
+            ZStack {
+                Color.black.opacity(0.35)
+                    .ignoresSafeArea()
+                CinematicLoadingView(
+                    title: loginMethod == .webAuthorization ? "正在啟動授權流程" : "登入中",
+                    subtitle: loginMethod == .webAuthorization ? "即將跳轉到 TMDB 授權頁" : "正在建立 session，馬上就好"
+                )
+                .padding(.horizontal, 24)
+            }
+            .transition(.opacity)
+        }
     }
     
     /// 登入頁內容區塊（不含背景與錯誤 overlay）
@@ -116,7 +145,7 @@ struct LoginPage: View {
         .padding(.horizontal, 16)
         .padding(.top, 8)
         .onChange(of: loginMethod) { _, newValue in
-            errorMessage = nil
+            loadingState = .idle
             if newValue == .webAuthorization {
                 password = ""
             }
@@ -158,7 +187,7 @@ struct LoginPage: View {
     /// 訪客登入（建立 guest session，允許進入 App 的受限功能）
     private var guestLoginButton: some View {
         Button(action: loginAsGuest) {
-            Text(isLoading ? "處理中..." : "訪客登入")
+            Text("訪客登入")
                 .font(.system(size: 16, weight: .semibold))
                 .foregroundColor(AppColor.primaryText)
                 .frame(maxWidth: .infinity)
@@ -171,7 +200,6 @@ struct LoginPage: View {
                 }
         }
         .padding(.horizontal, 16)
-        .disabled(isLoading)
     }
 
     /// 引導使用者前往 TMDB 註冊頁建立帳號
@@ -184,23 +212,6 @@ struct LoginPage: View {
         }
         .buttonStyle(.plain)
         .padding(.top, 8)
-        .disabled(isLoading)
-    }
-
-    /// 底部錯誤訊息 overlay（優先顯示 `errorMessage`，否則顯示 `AuthStore.authErrorMessage`）
-    private var errorOverlay: some View {
-        Group {
-            if let message = (errorMessage ?? authStore.authErrorMessage) {
-                Text(message)
-                    .font(.footnote)
-                    .foregroundColor(.red)
-                    .padding(.vertical, 8)
-                    .padding(.horizontal, 12)
-                    .background(AppColor.surface)
-                    .cornerRadius(12)
-                    .padding(.bottom, 24)
-            }
-        }
     }
 
     // MARK: - Actions
@@ -217,17 +228,15 @@ struct LoginPage: View {
     /// 啟動 TMDB 官方授權頁流程（取得 request token 並導向瀏覽器）
     private func startTMDBAuthorization() {
         Task { @MainActor in
-            guard !isLoading else { return }
-            isLoading = true
-            errorMessage = nil
-            defer { isLoading = false }
+            guard !isLaunchingAuthorization else { return }
+            isLaunchingAuthorization = true
+            defer { isLaunchingAuthorization = false }
             do {
                 let authService = AuthService()
                 let url = try await authService.authorizationURL()
                 openURL(url)
             } catch {
-                errorMessage = "授權啟動失敗：\(error.localizedDescription)"
-                print("TMDB authorization failed: \(error)")
+                uiStore.showAlert(title: "授權啟動失敗", message: error.localizedDescription)
             }
         }
     }
@@ -235,28 +244,26 @@ struct LoginPage: View {
     /// 以 TMDB 帳號密碼登入（在 UI 端檢查空值後交由 `AuthStore` 執行）
     private func loginWithCredentials() {
         Task { @MainActor in
-            guard !isLoading else { return }
+            guard !loadingState.isLoading else { return }
             guard !username.isEmpty, !password.isEmpty else {
-                if username.isEmpty {
-                    errorMessage = "請輸入 TMDB 使用者名稱"
-                } else {
-                    errorMessage = "請輸入 TMDB 密碼"
-                }
+                uiStore.showError(username.isEmpty ? "請輸入 TMDB 使用者名稱" : "請輸入 TMDB 密碼")
                 return
             }
-            isLoading = true
-            errorMessage = nil
-            defer { isLoading = false }
-            
-            await authStore.loginWithTMDBCredentials(username: username, password: password)
-            password = ""
+            loadingState = .idle
+            await withLoadingState(
+                setState: { loadingState = $0 },
+                successState: .idle
+            ) {
+                try await authStore.loginWithTMDBCredentials(username: username, password: password)
+                password = ""
+            }
         }
     }
 
     /// 開啟 TMDB 註冊頁（使用系統瀏覽器）
     private func openTMDBSignup() {
         guard let url = URL(string: tmdbSignupURLString) else {
-            errorMessage = "註冊頁網址不正確，請稍後再試"
+            uiStore.showError("註冊頁網址不正確，請稍後再試")
             return
         }
         openURL(url)
@@ -265,12 +272,14 @@ struct LoginPage: View {
     /// 以訪客身分建立 session（不需帳號），成功後進入 App
     private func loginAsGuest() {
         Task { @MainActor in
-            guard !isLoading else { return }
-            isLoading = true
-            errorMessage = nil
-            defer { isLoading = false }
-
-            await authStore.loginAsGuest()
+            guard !loadingState.isLoading else { return }
+            loadingState = .idle
+            await withLoadingState(
+                setState: { loadingState = $0 },
+                successState: .idle
+            ) {
+                try await authStore.loginAsGuest()
+            }
         }
     }
 
