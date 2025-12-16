@@ -13,27 +13,38 @@ final class AuthStore: ObservableObject {
     
     /// 授權流程服務（負責解析回呼與交換 session）
     private let authService: AuthService
+    /// 授權憑證持久化儲存（用於跨重啟維持登入狀態）
+    private let credentialStore: AuthCredentialStore
     
     /// 當前使用者身分（登入/訪客/匿名）
     @Published var identity: AuthIdentity = .anonymous
     /// 授權相關錯誤訊息（顯示於 UI）
     @Published var authErrorMessage: String?
     
-    /// 建立 `AuthStore`，可注入測試用的 `AuthService`
-    /// - Parameter authService: 授權流程服務（預設使用真實 `AuthService`）
-    init(authService: AuthService = AuthService()) {
+    /// 建立 `AuthStore`，可注入測試用的 `AuthService` 與憑證儲存層
+    /// - Parameters:
+    ///   - authService: 授權流程服務（預設使用真實 `AuthService`）
+    ///   - credentialStore: 憑證持久化儲存（預設使用 Keychain）
+    init(
+        authService: AuthService = AuthService(),
+        credentialStore: AuthCredentialStore = AuthKeychainStore()
+    ) {
         self.authService = authService
+        self.credentialStore = credentialStore
+        restorePersistedIdentity()
     }
     
     /// 以登入結果更新為 loggedIn 狀態
     func update(authResult: AuthService.AuthResult) {
         identity = .loggedIn(sessionID: authResult.sessionID, accountID: nil)
+        credentialStore.writeSessionID(authResult.sessionID)
         authErrorMessage = nil
     }
     
     /// 更新為 guest 身分（可評分，帶到期時間）
     func updateGuest(sessionID: String, expiresAt: Date?) {
         identity = .guest(guestSessionID: sessionID, expiresAt: expiresAt)
+        credentialStore.writeGuestSession(sessionID: sessionID, expiresAt: expiresAt)
         authErrorMessage = nil
     }
     
@@ -41,7 +52,7 @@ final class AuthStore: ObservableObject {
     var isAuthenticated: Bool {
         switch identity {
         case .loggedIn, .guest:
-            return true
+            return !isGuestExpired
         case .anonymous:
             return false
         }
@@ -99,5 +110,45 @@ final class AuthStore: ObservableObject {
     func reset() {
         identity = .anonymous
         authErrorMessage = nil
+    }
+
+    /// 登出並清除持久化憑證（回到登入頁）
+    func logout() {
+        credentialStore.clearAll()
+        reset()
+    }
+
+    /// 若訪客 session 已過期，則清除訪客憑證並回到登入頁
+    func invalidateGuestSessionIfExpired() {
+        guard isGuestExpired else { return }
+        credentialStore.clearGuestSession()
+        reset()
+    }
+}
+
+private extension AuthStore {
+
+    /// 訪客 session 是否已過期（非訪客身分時一律為 false）
+    var isGuestExpired: Bool {
+        guard case let .guest(_, expiresAt) = identity else { return false }
+        guard let expiresAt else { return false }
+        return Date() >= expiresAt
+    }
+
+    /// 從持久化儲存還原身分（優先還原登入 session，其次才是訪客 session）
+    func restorePersistedIdentity() {
+        if let sessionID = credentialStore.readSessionID() {
+            identity = .loggedIn(sessionID: sessionID, accountID: nil)
+            return
+        }
+
+        if let guest = credentialStore.readGuestSession() {
+            if let expiresAt = guest.expiresAt, Date() >= expiresAt {
+                credentialStore.clearGuestSession()
+                identity = .anonymous
+                return
+            }
+            identity = .guest(guestSessionID: guest.sessionID, expiresAt: guest.expiresAt)
+        }
     }
 }

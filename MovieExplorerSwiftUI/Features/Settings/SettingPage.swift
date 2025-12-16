@@ -10,6 +10,8 @@ import SwiftUI
 struct SettingPage: View {
     
     @EnvironmentObject private var coordinator: AppCoordinator
+    /// 授權狀態（用於登出並回到登入頁）
+    @EnvironmentObject private var authStore: AuthStore
     @State private var notificationsEnabled = true
     @State private var autoplayTrailers = true
     @State private var cellularStreaming = false
@@ -22,6 +24,7 @@ struct SettingPage: View {
                 appearanceSection
                 preferencesSection
                 streamingSection
+                accountSection
                 aboutSection
             }
             .padding(.vertical, 24)
@@ -202,6 +205,20 @@ private extension SettingPage {
             .buttonStyle(.plain)
         }
     }
+
+    /// 帳號相關操作（登出）
+    var accountSection: some View {
+        SettingSection(title: "帳號") {
+            Button(action: authStore.logout) {
+                DestructiveSettingRow(
+                    icon: "rectangle.portrait.and.arrow.right",
+                    title: "登出",
+                    subtitle: "清除本機 session 並回到登入頁"
+                )
+            }
+            .buttonStyle(.plain)
+        }
+    }
     
     struct SettingSection<Content: View>: View {
         let title: String
@@ -259,6 +276,36 @@ private extension SettingPage {
             }
         }
     }
+
+    /// 具有破壞性語意的設定列（例如登出、刪除）
+    struct DestructiveSettingRow: View {
+        /// SF Symbol 圖示名稱
+        let icon: String
+        /// 主標題
+        let title: String
+        /// 副標題
+        let subtitle: String
+
+        /// 破壞性操作列的 UI（以紅色系強調）
+        var body: some View {
+            HStack(spacing: 16) {
+                Image(systemName: icon)
+                    .font(.title3.weight(.semibold))
+                    .frame(width: 36, height: 36)
+                    .foregroundColor(.red)
+                    .background(Color.red.opacity(0.12), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(title)
+                        .font(.body.weight(.semibold))
+                        .foregroundColor(.red)
+                    Text(subtitle)
+                        .font(.caption)
+                        .foregroundColor(AppColor.secondaryText)
+                }
+                Spacer()
+            }
+        }
+    }
 }
 
 private enum DownloadQuality: String, CaseIterable, Identifiable {
@@ -293,4 +340,5 @@ private enum DownloadQuality: String, CaseIterable, Identifiable {
         SettingPage()
     }
     .environmentObject(AppCoordinator())
+    .environmentObject(AuthStore())
 }

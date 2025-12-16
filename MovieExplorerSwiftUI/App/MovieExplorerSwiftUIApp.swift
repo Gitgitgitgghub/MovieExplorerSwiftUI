@@ -10,6 +10,9 @@ import SwiftUI
 @main
 struct MovieExplorerSwiftUIApp: App {
 
+    /// App 前景/背景狀態（用於在回到前景時檢查訪客 session 是否過期）
+    @Environment(\.scenePhase) private var scenePhase
+
     @StateObject private var authStore: AuthStore
     @StateObject private var coordinator: AppCoordinator
 
@@ -35,6 +38,10 @@ struct MovieExplorerSwiftUIApp: App {
                 Task {
                     await authStore.handleAuthCallback(url: url)
                 }
+            }
+            .onChange(of: scenePhase) { _, newValue in
+                guard newValue == .active else { return }
+                authStore.invalidateGuestSessionIfExpired()
             }
         }
     }
